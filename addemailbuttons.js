@@ -66,7 +66,10 @@ function sendmail(issueNumber, issueTitle) {
 
  	var baseUrl = document.getElementsByClassName("entry-title public")[0].getElementsByTagName('strong')[0].getElementsByTagName('a')[0].href + "/issues/";
 
-	var subject = "dotnet/roslyn #" + issueNumber + ": " + issueTitle;
+	var owner = document.getElementsByClassName("entry-title public")[0].getElementsByClassName("author")[0].getElementsByTagName("span")[0].innerHTML;
+	var repo = document.getElementsByClassName("entry-title public")[0].getElementsByTagName("strong")[0].getElementsByTagName("a")[0].innerHTML;
+
+	var subject = owner + "/" + repo + " #" + issueNumber + ": " + issueTitle;
 
 	var body = issueTitle + " (" + baseUrl + issueNumber + ")"; // TODO: Assigned to, etc.
 
