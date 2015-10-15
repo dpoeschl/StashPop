@@ -1,0 +1,21 @@
+{
+"name":"Email GitHub Issues",
+"description":"None",
+"version":"1",
+"manifest_version":2,
+"content_scripts": [
+    {
+      "matches": ["https://github.com/*"],
+      "js": ["addemailbuttons.js"],
+      "run_at": "document_start"
+    }
+  ],
+"browser_action": {
+    "default_icon": "icon.png"
+  },
+"permissions": [
+  "tabs",
+  "https://ajax.googleapis.com/",
+  "https://github.com/*"
+  ]
+}
