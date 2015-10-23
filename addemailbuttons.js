@@ -71,7 +71,7 @@ function sendmail(issueNumber, issueTitle) {
 
 	var subject = owner + "/" + repo + " #" + issueNumber + ": " + issueTitle;
 
-	var body = issueTitle + " (" + baseUrl + issueNumber + ")"; // TODO: Assigned to, etc.
+	var body = baseUrl + issueNumber + "\r\n\r\n"; // TODO: Assigned to, etc.
 
 	window.location.href = "mailto:?subject=" + encodeURI(subject) + "&body=" + encodeURI(body);
 }
