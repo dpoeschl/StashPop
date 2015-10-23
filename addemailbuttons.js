@@ -1,9 +1,9 @@
 document.addEventListener("DOMContentLoaded", function() {
 	  "use strict";
-	run();
+	setupButtons();
 });
 
-function run() {
+function setupButtons() {
   var titleElement = document.getElementsByClassName("js-issue-title")[0]
 
   if (typeof titleElement !== 'undefined')
