@@ -4,6 +4,12 @@ document.addEventListener("DOMContentLoaded", function() {
 });
 
 function setupButtons() {
+  addIndividualIssueButton();
+  addTestFailureButtons();
+  addButtonsToIssuesList();
+}
+
+function addIndividualIssueButton() {
   var titleElement = document.getElementsByClassName("js-issue-title")[0]
 
   if (typeof titleElement !== 'undefined')
@@ -25,7 +31,9 @@ function setupButtons() {
 
       titleElement.parentNode.insertBefore(button, document.getElementsByClassName("js-issue-title")[0].parentNode.firstChild);
   }
+}
 
+function addTestFailureButtons() {
   var testFailures = document.getElementsByClassName("octicon-x build-status-icon");
   for (var i = 0; i < testFailures.length; i++)
   {
@@ -51,7 +59,9 @@ function setupButtons() {
 
     testFailure.parentNode.insertBefore(button, testFailure.parentNode.firstChild);
   }
+}
 
+function addButtonsToIssuesList() {
   var issuesList = document.getElementsByClassName("table-list-issues")[0];
 
   if (typeof issuesList !== 'undefined')
