@@ -6,6 +6,7 @@ document.addEventListener("DOMContentLoaded", function() {
 function setupButtons() {
   addIndividualIssueButton();
   addTestFailureButtons();
+  openJenkinsDetailsInNewTab();
   addButtonsToIssuesList();
 }
 
@@ -93,6 +94,15 @@ function addButtonsToIssuesList() {
 
       title.insertBefore(button, title.firstChild);
     }
+  }
+}
+
+function openJenkinsDetailsInNewTab() {
+  var detailsLinks = document.getElementsByClassName("build-status-details");
+  for (var i = 0; i < detailsLinks.length; i++)
+  {
+    var detailsLink = detailsLinks[i];
+    detailsLink.target = "_blank";
   }
 }
 
