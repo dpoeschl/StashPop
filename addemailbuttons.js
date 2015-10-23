@@ -26,6 +26,32 @@ function setupButtons() {
       titleElement.parentNode.insertBefore(button, document.getElementsByClassName("js-issue-title")[0].parentNode.firstChild);
   }
 
+  var testFailures = document.getElementsByClassName("octicon-x build-status-icon");
+  for (var i = 0; i < testFailures.length; i++)
+  {
+    var testFailure = testFailures[i];
+
+    var testFailUrl = testFailure.parentNode.getElementsByClassName("build-status-details")[0].href;
+    var issueTitle = "PR Test Failure: <explanation>";
+    var issueBody = "See " + testFailUrl + " for more details.";
+
+    var url = "https://github.com/dotnet/roslyn/issues/new?title=" + encodeURI(issueTitle) + "&body=" + encodeURI(issueBody) + "&labels=Area-Infrastructure";
+
+    var button = document.createElement("input");
+    button.setAttribute("type", "button");
+    button.setAttribute("value", "File bug");
+    button.setAttribute("name", "buttonname");
+    button.onclick = (function() { 
+        var thisUrl = url;
+	return function() {
+	  window.open(thisUrl);
+        };
+      })();
+    button.className = "btn btn-sm";
+
+    testFailure.parentNode.insertBefore(button, testFailure.parentNode.firstChild);
+  }
+
   var issuesList = document.getElementsByClassName("table-list-issues")[0];
 
   if (typeof issuesList !== 'undefined')
