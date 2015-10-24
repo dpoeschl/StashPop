@@ -44,7 +44,7 @@ function addTestFailureButtons() {
     var issueTitle = "PR Test Failure: <explanation>";
     var issueBody = "See " + testFailUrl + " for more details.";
 
-    var url = "https://github.com/dotnet/roslyn/issues/new?title=" + encodeURI(issueTitle) + "&body=" + encodeURI(issueBody) + "&labels=Area-Infrastructure";
+    var url = "https://github.com/dotnet/roslyn/issues/new?title=" + encodeURI(issueTitle) + "&body=" + encodeURI(issueBody) + "&labels[]=Area-Infrastructure&labels[]=Contributor%20Pain";
 
     var button = document.createElement("input");
     button.setAttribute("type", "button");
