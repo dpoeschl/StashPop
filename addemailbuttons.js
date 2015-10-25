@@ -1,14 +1,12 @@
 document.addEventListener("DOMContentLoaded", function() {
-	  "use strict";
-	setupButtons();
-});
+  "use strict";
 
-function setupButtons() {
   addIndividualIssueButton();
-  addTestFailureButtons();
+  addTestFailureButtonsAndDescriptions();
   openJenkinsDetailsInNewTab();
   addButtonsToIssuesList();
-}
+  makeBuildStatusWindowsBig();
+});
 
 function addIndividualIssueButton() {
   var titleElement = document.getElementsByClassName("js-issue-title")[0]
@@ -34,31 +32,128 @@ function addIndividualIssueButton() {
   }
 }
 
-function addTestFailureButtons() {
+function addTestFailureButtonsAndDescriptions() {
   var testFailures = document.getElementsByClassName("octicon-x build-status-icon");
+
   for (var i = 0; i < testFailures.length; i++)
   {
+    var isDropdown = false;
+
+    var ancestor = testFailures[i];
+    while ((ancestor = ancestor.parentElement) != null) {
+      if (ancestor.classList.contains("dropdown-menu")) {
+        isDropdown = true;
+        break;
+      }
+    }
+
+    if (isDropdown) {
+      continue;
+    }
+
     var testFailure = testFailures[i];
-
     var testFailUrl = testFailure.parentNode.getElementsByClassName("build-status-details")[0].href;
-    var issueTitle = "PR Test Failure: <explanation>";
-    var issueBody = "See " + testFailUrl + " for more details.";
 
-    var url = "https://github.com/dotnet/roslyn/issues/new?title=" + encodeURI(issueTitle) + "&body=" + encodeURI(issueBody) + "&labels[]=Area-Infrastructure&labels[]=Contributor%20Pain";
+    (function(_testFailure, _testFailUrl) {
+      chrome.runtime.sendMessage({
+        method: 'GET',
+        action: 'xhttp',
+        url: _testFailUrl,
+        data: ''
+      }, function(responseText) {
+        // Parse the response
+        var parser = new DOMParser();
+        var doc = parser.parseFromString(responseText, "text/xml");
+        var h2elements = doc.getElementsByTagName("h2");
 
-    var button = document.createElement("input");
-    button.setAttribute("type", "button");
-    button.setAttribute("value", "File bug");
-    button.setAttribute("name", "buttonname");
-    button.onclick = (function() { 
-        var thisUrl = url;
-	return function() {
-	  window.open(thisUrl);
-        };
-      })();
-    button.className = "btn btn-sm";
+        var issueBody = "*See " + _testFailUrl + " for more details.*\r\n\r\n";
+        var htmlDescription = "";
+        var count = 1;
 
-    testFailure.parentNode.insertBefore(button, testFailure.parentNode.firstChild);
+        for (var i = 0; i < h2elements.length; i++)
+        {
+          var h2 = h2elements[i];
+          if (h2.innerHTML == "Identified problems")
+          {
+            var nodeWithErrorSiblings = h2.parentNode.parentNode;
+            var errorRow = nodeWithErrorSiblings;
+            while ((errorRow = errorRow.nextSibling) != null)
+            {
+              if (count > 1)
+              {
+                issueBody = issueBody + "\r\n\r\n";
+                htmlDescription = htmlDescription + "<br /><br />";
+              }
+
+              var failureTitle = "";
+              var failureDescription = "";
+
+              var h3s = errorRow.getElementsByTagName("h3");
+              var h4s = errorRow.getElementsByTagName("h4");
+              if (h3s.length > 0)
+              {
+                failureTitle = h3s[0].innerHTML.split("<br")[0].trim();
+                failureDescription = h3s[0].getElementsByTagName("b")[0].innerHTML.trim();
+              }
+              else if (h4s.length > 0)
+              {
+                failureTitle = h4s[0].innerHTML.trim();
+                failureDescription = h4s[1].innerHTML.trim();
+              }
+
+              issueBody = issueBody + "**Issue " + count + ": " + failureTitle + "**\r\n";
+	      issueBody = issueBody + failureDescription;
+              htmlDescription = htmlDescription + "<b>Issue " + count + ": " + failureTitle + "</b><br />" + failureDescription;
+
+              count++;
+            }
+          }
+        }
+
+        if (count == 1)
+        {
+          // we failed to find the failure, or there was none.
+          // should we add special handling here?
+        }
+
+        var issueTitle = "PR Test Failure: <explanation>";
+
+        var url = "https://github.com/dotnet/roslyn/issues/new?title=" + encodeURI(issueTitle) + "&body=" + encodeURI(issueBody) + "&labels[]=Area-Infrastructure&labels[]=Contributor%20Pain";
+ 
+        // Add the issue filing button
+
+        var button = document.createElement("input");
+        button.setAttribute("type", "button");
+        button.setAttribute("value", "File bug");
+        button.setAttribute("name", "buttonname");
+        button.onclick = (function() { 
+          var thisUrl = url;
+	  return function() {
+	    window.open(thisUrl);
+          };
+        })();
+    
+        button.className = "btn btn-sm";
+        button.style.margin = "0px 0px 3px 0px";
+
+        _testFailure.parentNode.insertBefore(button, _testFailure.parentNode.firstChild);
+
+        // Add description
+
+	var div = document.createElement("div");
+	div.innerHTML= htmlDescription;
+        div.style.backgroundColor = "#FFAAAA";
+
+        _testFailure.parentNode.appendChild(div);
+      });
+    })(testFailure, testFailUrl);
+  }
+}
+
+function makeBuildStatusWindowsBig() {
+  var lists = document.getElementsByClassName("build-statuses-list");
+  for (var i = 0; i < lists.length; i++) {
+    lists[i].style.maxHeight = "5000px";
   }
 }
 
