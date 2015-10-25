@@ -1,12 +1,15 @@
 document.addEventListener("DOMContentLoaded", function() {
   "use strict";
+  reload();
+});
 
+function reload() {
   addIndividualIssueButton();
   addTestFailureButtonsAndDescriptions();
   openJenkinsDetailsInNewTab();
   addButtonsToIssuesList();
   makeBuildStatusWindowsBig();
-});
+}
 
 function addIndividualIssueButton() {
   var titleElement = document.getElementsByClassName("js-issue-title")[0]
@@ -63,7 +66,7 @@ function addTestFailureButtonsAndDescriptions() {
       }, function(responseText) {
         // Parse the response
         var parser = new DOMParser();
-        var doc = parser.parseFromString(responseText, "text/xml");
+        var doc = parser.parseFromString(responseText, "text/html");
         var h2elements = doc.getElementsByTagName("h2");
 
         var issueBody = "*See " + _testFailUrl + " for more details.*\r\n\r\n";
