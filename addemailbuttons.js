@@ -126,10 +126,36 @@ function addTestFailureButtonsAndDescriptions() {
         var parser = new DOMParser();
         var doc = parser.parseFromString(responseText, "text/html");
         var h2elements = doc.getElementsByTagName("h2");
+        var aelements = doc.getElementsByTagName("a");
 
         var issueBody = "*See " + _testFailUrl + " for more details.*\r\n\r\n";
         var htmlDescription = "";
         var count = 1;
+
+        for (var i = 0; i < aelements.length; i++)
+        {
+          var aelement = aelements[i];
+          if (aelement.innerText == "Test Result" && aelement.parentNode.tagName == "TD")
+          {
+            var unitTestFailures = aelement.parentNode.getElementsByTagName("li");
+
+            if (unitTestFailures.length > 0)
+            {
+              htmlDescription = htmlDescription + "<b>Test Failures:</b><br />";
+              issueBody = issueBody + "**Test Failures:**\r\n";
+            }
+
+            for (var j = 0; j < unitTestFailures.length; j++)
+            {
+              var unitTestFailure = unitTestFailures[j];
+              htmlDescription = htmlDescription + "&nbsp;&nbsp;&nbsp;&nbsp;" + unitTestFailure.innerText + "<br />";
+              issueBody = issueBody + unitTestFailure.innerText + "\r\n";
+            }
+
+            htmlDescription = htmlDescription + "<br />";
+            issueBody = issueBody + "\r\n";
+          }
+        }
 
         for (var i = 0; i < h2elements.length; i++)
         {
@@ -160,6 +186,7 @@ function addTestFailureButtonsAndDescriptions() {
               if (h3s.length > 0)
               {
                 failureTitle = h3s[0].innerHTML.split("<br")[0].trim();
+
                 failureDescription = h3s[0].getElementsByTagName("b")[0].innerHTML.trim();
               }
               else if (h4s.length > 0)
