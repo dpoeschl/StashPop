@@ -134,6 +134,12 @@ function addTestFailureButtonsAndDescriptions() {
         for (var i = 0; i < h2elements.length; i++)
         {
           var h2 = h2elements[i];
+
+          if (h2.innerHTML == "HTTP ERROR 404")
+          {
+            htmlDescription = htmlDescription + "404: Build details page could not be found.";
+          }
+
           if (h2.innerHTML == "Identified problems")
           {
             var nodeWithErrorSiblings = h2.parentNode.parentNode;
