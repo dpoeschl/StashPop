@@ -7,6 +7,7 @@ function reload() {
   addIndividualIssueButton();
   addTestFailureButtonsAndDescriptions();
   openJenkinsDetailsInNewTab();
+  addJenkinsTestRunTimes();
   addButtonsToIssuesList();
   makeBuildStatusWindowsBig();
 }
@@ -32,6 +33,63 @@ function addIndividualIssueButton() {
       button.className = "btn";
 
       titleElement.parentNode.insertBefore(button, document.getElementsByClassName("js-issue-title")[0].parentNode.firstChild);
+  }
+}
+
+// TODO: Only scrape once between this and addTestFailureButtonsAndDescriptions
+function addJenkinsTestRunTimes() {
+  var testRuns = document.getElementsByClassName("build-status-item");
+  for (var i = 0; i < testRuns.length; i++)
+  {
+    var run = testRuns[i];
+    var url = run.getElementsByClassName("build-status-details")[0].href;
+
+    (function(_run, _url) {
+      chrome.runtime.sendMessage({
+          method: 'GET',
+          action: 'xhttp',
+          url: _url,
+          data: ''
+        }, function(responseText) {
+          // Parse the response
+          var parser = new DOMParser();
+          var doc = parser.parseFromString(responseText, "text/html");
+          var header = doc.getElementsByClassName("build-caption page-headline")[0];
+          var timestamp = header.innerText.split("(")[1].split(")")[0];
+          var timestampDisplay = " [Run on " + timestamp + ". "
+
+          // TODO: time zones?
+          var date = new Date(Date.parse(timestamp));
+          var currentdate = new Date();
+
+          var delta = currentdate-date;
+          var dayCount = delta / (1000 * 60 * 60 * 24);
+          var minuteCount = delta / (1000 * 60);
+
+          var backgroundColor = "#000000";
+          var timeAgo = Math.round(dayCount * 10) / 10 + " days ago";
+
+          if (dayCount <= 2) { backgroundColor = "#AAFFAA"; } // green
+          else if (dayCount <= 5) { backgroundColor = "#FFC85A"; } // yellow
+          else { backgroundColor = "#FFAAAA"; } // red
+
+          var textToUpdate = _run.getElementsByClassName("text-muted")[0];
+
+  	  var span = document.createElement("span");
+  	  span.innerHTML= timestampDisplay;
+	  textToUpdate.appendChild(span);
+          
+          var span2 = document.createElement("span");
+          span2.innerHTML = "(" + timeAgo + ")";
+          span2.style.backgroundColor = backgroundColor;
+          span2.setAttribute("title", "Green: < 2 days\nYellow: 2 to 5 days\nRed: > 5 days");
+          textToUpdate.appendChild(span2);          
+
+  	  var span3 = document.createElement("span");
+  	  span3.innerHTML= "]";
+	  textToUpdate.appendChild(span3);
+        });
+    })(run, url);
   }
 }
 
