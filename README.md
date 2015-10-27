@@ -13,3 +13,7 @@ To update:
 1. Update to latest from the ```master``` branch.
 2. In chrome, navigate to [chrome://extensions/](chrome://extensions/).
 3. Click the "Reload" link under the "Email GitHub Issues" extension.
+
+To allow access to your Jenkins host machine:
+
+1. // TODO: Basically, add your domain to the manifest.
