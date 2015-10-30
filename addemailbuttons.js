@@ -42,7 +42,11 @@ function addJenkinsTestRunTimes() {
   for (var i = 0; i < testRuns.length; i++)
   {
     var run = testRuns[i];
-    var url = run.getElementsByClassName("build-status-details")[0].href;
+    var detailsLink = run.getElementsByClassName("build-status-details")[0];
+    if (typeof detailsLink === 'undefined')
+    {
+      continue;
+    }
 
     (function(_run, _url) {
       chrome.runtime.sendMessage({
@@ -89,7 +93,7 @@ function addJenkinsTestRunTimes() {
   	  span3.innerHTML= "]";
 	  textToUpdate.appendChild(span3);
         });
-    })(run, url);
+    })(run, detailsLink.href);
   }
 }
 
