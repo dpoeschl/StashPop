@@ -1,9 +1,28 @@
 document.addEventListener("DOMContentLoaded", function() {
   "use strict";
-  reload();
+  initialSetup();
+  reload();  
 });
 
+var emailGitHubIssuesClassName = "emailGitHubIssues";
+
+function initialSetup() {
+  var s = document.createElement('script');
+  s.src = chrome.extension.getURL('scripts/injectedcode.js');
+  s.onload = function() {
+    this.parentNode.removeChild(this);
+  };
+
+  (document.head||document.documentElement).appendChild(s);
+
+  document.addEventListener('_pjax:end', function() {
+    reload();
+  }, false);
+}
+
 function reload() {
+  $('.' + emailGitHubIssuesClassName).remove();
+  
   addIndividualIssueButton();
   addTestFailureButtonsAndDescriptions();
   openJenkinsDetailsInNewTab();
@@ -30,7 +49,7 @@ function addIndividualIssueButton() {
 	  sendmail(currentNumber, currentTitle);
 	};
       })();
-      button.className = "btn";
+      button.className = "btn " + emailGitHubIssuesClassName;
 
       titleElement.parentNode.insertBefore(button, document.getElementsByClassName("js-issue-title")[0].parentNode.firstChild);
   }
@@ -81,16 +100,19 @@ function addJenkinsTestRunTimes() {
 
   	  var span = document.createElement("span");
   	  span.innerHTML= timestampDisplay;
+	  span.className = emailGitHubIssuesClassName;
 	  textToUpdate.appendChild(span);
           
           var span2 = document.createElement("span");
           span2.innerHTML = "(" + timeAgo + ")";
           span2.style.backgroundColor = backgroundColor;
           span2.setAttribute("title", "Green: < 2 days\nYellow: 2 to 5 days\nRed: > 5 days");
+	  span2.className = emailGitHubIssuesClassName;
           textToUpdate.appendChild(span2);          
 
   	  var span3 = document.createElement("span");
   	  span3.innerHTML= "]";
+	  span3.className = emailGitHubIssuesClassName;
 	  textToUpdate.appendChild(span3);
         });
     })(run, detailsLink.href);
@@ -231,7 +253,7 @@ function addTestFailureButtonsAndDescriptions() {
           };
         })();
     
-        button.className = "btn btn-sm";
+        button.className = "btn btn-sm " + emailGitHubIssuesClassName;
         button.style.margin = "0px 0px 3px 0px";
 
         _testFailure.parentNode.insertBefore(button, _testFailure.parentNode.firstChild);
@@ -241,6 +263,7 @@ function addTestFailureButtonsAndDescriptions() {
 	var div = document.createElement("div");
 	div.innerHTML= htmlDescription;
         div.style.backgroundColor = "#FFAAAA";
+	div.className = emailGitHubIssuesClassName;
 
         _testFailure.parentNode.appendChild(div);
       });
@@ -283,7 +306,7 @@ function addButtonsToIssuesList() {
 	  sendmail(currentNumber, currentTitle);
 	};
       })();
-      button.className = "btn btn-sm";
+      button.className = "btn btn-sm " + emailGitHubIssuesClassName;
 
       title.insertBefore(button, title.firstChild);
     }

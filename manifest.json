@@ -3,6 +3,9 @@
 "description":"None",
 "version":"1",
 "manifest_version":2,
+"web_accessible_resources": [
+  "scripts/injectedcode.js"
+  ],
 "content_scripts": [
     {
       "matches": ["https://github.com/*"],
