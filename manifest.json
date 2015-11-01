@@ -8,7 +8,8 @@
     "chrome_style": true
   },
 "web_accessible_resources": [
-  "scripts/injectedcode.js"
+  "scripts/injectedcode.js",
+  "images/loading.gif"
   ],
 "content_scripts": [
     {

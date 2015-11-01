@@ -24,11 +24,13 @@ function reload() {
     $('.' + emailGitHubIssuesClassName).remove();
 
     addIndividualIssueButton();
-    addTestFailureButtonsAndDescriptions();
-    openJenkinsDetailsInNewTab();
-    addJenkinsTestRunTimes();
     addButtonsToIssuesList();
+
+    openJenkinsDetailsInNewTab();
     makeBuildStatusWindowsBig();
+
+    addTestFailureButtonsAndDescriptions();
+    addJenkinsTestRunTimes();
 }
 
 function addIndividualIssueButton() {
@@ -71,7 +73,16 @@ function addJenkinsTestRunTimes() {
                     continue;
                 }
 
-                (function (_run, _url) {
+                var textToUpdate = run.getElementsByClassName("text-muted")[0];
+ 
+                var loading = document.createElement("img");
+                var imgUrl = chrome.extension.getURL("images/loading.gif");
+                loading.src = imgUrl;
+                var specificClassName = emailGitHubIssuesClassName + "_TestRunTime_" + i;
+                loading.className = emailGitHubIssuesClassName + " " + specificClassName;
+                textToUpdate.appendChild(loading);
+
+                (function (_run, _url, _specificClassName) {
                     chrome.runtime.sendMessage({
                         method: 'GET',
                         action: 'xhttp',
@@ -81,6 +92,11 @@ function addJenkinsTestRunTimes() {
                         var parser = new DOMParser();
                         var doc = parser.parseFromString(responseText, "text/html");
                         var header = doc.getElementsByClassName("build-caption page-headline")[0];
+                        if (typeof header === "undefined") {
+                          $('.' + _specificClassName).remove();
+                          return;
+                        }
+
                         var timestamp = header.innerText.split("(")[1].split(")")[0];
                         var timestampDisplay = " [Run on " + timestamp + ". "
 
@@ -98,6 +114,8 @@ function addJenkinsTestRunTimes() {
                         if (dayCount <= 2) { backgroundColor = "#AAFFAA"; } // green
                         else if (dayCount <= 5) { backgroundColor = "#FFC85A"; } // yellow
                         else { backgroundColor = "#FFAAAA"; } // red
+
+			$('.' + _specificClassName).remove();
 
                         var textToUpdate = _run.getElementsByClassName("text-muted")[0];
 
@@ -118,7 +136,7 @@ function addJenkinsTestRunTimes() {
                         span3.className = emailGitHubIssuesClassName;
                         textToUpdate.appendChild(span3);
                     });
-                })(run, detailsLink.href);
+                })(run, detailsLink.href, specificClassName);
             }
         }
     });
@@ -127,7 +145,6 @@ function addJenkinsTestRunTimes() {
 function addTestFailureButtonsAndDescriptions() {
     chrome.runtime.sendMessage({ method: "getSettings", keys: ["jenkinsShowBugFilingButton", "jenkinsShowFailureIndications", "jenkinsShowTestFailures"] }, function (response) {
         if (response.data["jenkinsShowBugFilingButton"] || response.data["jenkinsShowFailureIndications"]) {
-            {
                 var testFailures = document.getElementsByClassName("octicon-x build-status-icon");
 
                 for (var i = 0; i < testFailures.length; i++) {
@@ -148,7 +165,14 @@ function addTestFailureButtonsAndDescriptions() {
                     var testFailure = testFailures[i];
                     var testFailUrl = testFailure.parentNode.getElementsByClassName("build-status-details")[0].href;
 
-                    (function (_testFailure, _testFailUrl) {
+                    var loading = document.createElement("img");
+                    var imgUrl = chrome.extension.getURL("images/loading.gif");
+                    loading.src = imgUrl;
+                    var specificClassName = emailGitHubIssuesClassName + "_TestFailures_" + i;
+                    loading.className = emailGitHubIssuesClassName + " " + specificClassName;
+                    testFailure.parentNode.insertBefore(loading, testFailure.parentNode.firstChild);
+
+                    (function (_testFailure, _testFailUrl, _specificClassName) {
                         chrome.runtime.sendMessage({
                             method: 'GET',
                             action: 'xhttp',
@@ -235,6 +259,8 @@ function addTestFailureButtonsAndDescriptions() {
 
                             var url = "https://github.com/dotnet/roslyn/issues/new?title=" + encodeURI(issueTitle) + "&body=" + encodeURI(issueBody) + "&labels[]=Area-Infrastructure&labels[]=Contributor%20Pain";
 
+                            $('.' + _specificClassName).remove();
+
                             if (response.data["jenkinsShowBugFilingButton"]) {
                                 var button = document.createElement("input");
                                 button.setAttribute("type", "button");
@@ -261,9 +287,8 @@ function addTestFailureButtonsAndDescriptions() {
                                 _testFailure.parentNode.appendChild(div);
                             }
                         });
-                    })(testFailure, testFailUrl);
+                    })(testFailure, testFailUrl, specificClassName);
                 }
-            }
         }
     });
 }
