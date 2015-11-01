@@ -3,6 +3,10 @@
 "description":"None",
 "version":"1",
 "manifest_version":2,
+"options_ui": {
+    "page": "options.html",
+    "chrome_style": true
+  },
 "web_accessible_resources": [
   "scripts/injectedcode.js"
   ],
@@ -22,6 +26,7 @@
   },
 "permissions": [
   "tabs",
+  "storage",
   "https://ajax.googleapis.com/",
   "https://github.com/*",
   "http://dotnet-ci.cloudapp.net/*"

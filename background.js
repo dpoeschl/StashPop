@@ -16,4 +16,16 @@ chrome.runtime.onMessage.addListener(function(request, sender, callback) {
         xhttp.send(request.data);
         return true; // prevents the callback from being called too early on return
     }
+    else if (request.method == "getSettings") {
+      var keys = {};
+      for (var i = 0; i < request.keys.length; i++) {
+        keys[request.keys[i]] = true;
+      }
+
+      chrome.storage.sync.get(keys, function(items) {
+        callback({data: items});
+      });
+
+      return true;
+    }
 });
