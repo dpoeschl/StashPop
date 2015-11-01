@@ -195,11 +195,17 @@ function addTestFailureButtonsAndDescriptions() {
                                         var unitTestFailures = aelement.parentNode.getElementsByTagName("li");
 
                                         if (unitTestFailures.length > 0) {
-                                            htmlDescription = htmlDescription + "<b>Test Failures:</b><br />";
-                                            issueBody = issueBody + "**Test Failures:**\r\n";
+                                            if (unitTestFailures.length <= 10) {
+                                                htmlDescription = htmlDescription + "<b>" + unitTestFailures.length + " Test Failures:</b><br />";
+                                                issueBody = issueBody + "**" + unitTestFailures.length + " Test Failures:**\r\n";
+                                            }
+                                            else {
+                                                htmlDescription = htmlDescription + "<b>" + unitTestFailures.length + " Test Failures:</b> (showing first 10)<br />";
+                                                issueBody = issueBody + "**" + unitTestFailures.length + " Test Failures:** (showing first 10)\r\n";
+                                            }
                                         }
 
-                                        for (var j = 0; j < unitTestFailures.length; j++) {
+                                        for (var j = 0; j < unitTestFailures.length && j < 10; j++) {
                                             var unitTestFailure = unitTestFailures[j];
                                             htmlDescription = htmlDescription + "&nbsp;&nbsp;&nbsp;&nbsp;" + unitTestFailure.innerText + "<br />";
                                             issueBody = issueBody + unitTestFailure.innerText + "\r\n";
