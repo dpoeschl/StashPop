@@ -4,15 +4,15 @@ Adds features to GitHub, with extra Jenkins goodness on https://github.com/dotne
 **Features:**
 
 1. Adds email buttons for Issues and Pull Requests
-  - Added to issue/PR lists and individual views
+  - Added to issue/PR lists and individual views (<a href="screenshots/issueslist.png" target="_blank">screenshot</a>)
   - Supports issue/PR multi-select
-  - Emails are created in your default email application
+  - Emails are created in your default email application (<a href="screenshots/issueemail.png" target="_blank">screenshot</a>)
 
 2. Jenkins PR support (supports https://github.com/dotnet/ repositories by default, add your own in manifest.json)
-  - Shows how long ago a Jenkins build ran
-  - Adds "Create Issue" buttons to each Jenkins test failure
+  - Shows how long ago a Jenkins build ran (<a href="screenshots/jenkinsresults.png" target="_blank">screenshot</a>)
   - Shows the Jenkins build & test failure descriptions in the PR 
   - Opens Jenkins "details" links in a new tab
+  - Adds "Create Issue" buttons to each Jenkins test failure (<a href="screenshots/createdissue.png" target="_blank">screenshot</a>)
 
 **To install:**
 
