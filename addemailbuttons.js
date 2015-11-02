@@ -184,9 +184,16 @@ function addTestFailureButtonsAndDescriptions() {
                             var h2elements = doc.getElementsByTagName("h2");
                             var aelements = doc.getElementsByTagName("a");
 
-                            var issueBody = "*See " + _testFailUrl + " for more details.*\r\n\r\n";
+                            var url = window.location.href;
+                            var urlParts = url.split("/");
+                            var pullNumber = urlParts[urlParts.length - 1];
+                            var pullTitle = document.getElementsByClassName("js-issue-title")[0].innerText.trim();
+                            var pullAuthor = document.getElementsByClassName("pull-header-username")[0].innerText.trim();
+
+                            var issueBody = "PR: [#" + pullNumber + "](" + url + ") *" + pullTitle + "* by @" + pullAuthor + "\r\n";
+                            issueBody = issueBody + "Failure: " + _testFailUrl + "\r\n\r\n";
                             var htmlDescription = "";
-                            var count = 1;
+                            var issueDescription = "<description>";
 
                             if (response.data["jenkinsShowTestFailures"]) {
                                 for (var i = 0; i < aelements.length; i++) {
@@ -217,11 +224,13 @@ function addTestFailureButtonsAndDescriptions() {
                                 }
                             }
 
+                            var count = 1;
                             for (var i = 0; i < h2elements.length; i++) {
                                 var h2 = h2elements[i];
 
                                 if (h2.innerHTML == "HTTP ERROR 404") {
                                     htmlDescription = htmlDescription + "404: Build details page could not be found.";
+                                    issueDescription = "404: Build details page could not be found.";
                                 }
 
                                 if (h2.innerHTML == "Identified problems") {
@@ -247,6 +256,10 @@ function addTestFailureButtonsAndDescriptions() {
                                             failureDescription = h4s[1].innerHTML.trim();
                                         }
 
+                                        if (count == 1) {
+                                          issueDescription = failureTitle;
+                                        }
+
                                         issueBody = issueBody + "**Issue " + count + ": " + failureTitle + "**\r\n";
                                         issueBody = issueBody + failureDescription;
                                         htmlDescription = htmlDescription + "<b>Issue " + count + ": " + failureTitle + "</b><br />" + failureDescription;
@@ -256,21 +269,26 @@ function addTestFailureButtonsAndDescriptions() {
                                 }
                             }
 
+                            if (count > 2) {
+                              issueDescription = issueDescription + " (+" + (count - 2) + " more)";
+                            }
+
                             if (count == 1) {
                                 // we failed to find the failure, or there was none.
                                 // should we add special handling here?
                             }
 
-                            var issueTitle = "PR Test Failure: <explanation>";
+                            var testQueueName = _testFailure.parentNode.getElementsByClassName("text-emphasized")[0].innerText.trim();
+                            var issueTitle = "[Test Failure] " + issueDescription + " in " + testQueueName + " on PR #" + pullNumber;
 
-                            var url = "https://github.com/dotnet/roslyn/issues/new?title=" + encodeURI(issueTitle) + "&body=" + encodeURI(issueBody) + "&labels[]=Area-Infrastructure&labels[]=Contributor%20Pain";
+                            var url = "https://github.com/dotnet/roslyn/issues/new?title=" + encodeURIComponent(issueTitle) + "&body=" + encodeURIComponent(issueBody) + "&labels[]=Area-Infrastructure&labels[]=Contributor%20Pain";
 
                             $('.' + _specificClassName).remove();
 
                             if (response.data["jenkinsShowBugFilingButton"]) {
                                 var button = document.createElement("input");
                                 button.setAttribute("type", "button");
-                                button.setAttribute("value", "File bug");
+                                button.setAttribute("value", "Create Issue");
                                 button.setAttribute("name", "buttonname");
                                 button.onclick = (function () {
                                     var thisUrl = url;
