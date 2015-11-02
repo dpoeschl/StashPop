@@ -402,11 +402,11 @@ function openJenkinsDetailsInNewTab() {
 }
 
 function sendmultimail(issuesList, isPull) {
-    var baseUrl = document.getElementsByClassName("entry-title public")[0].getElementsByTagName('strong')[0].getElementsByTagName('a')[0].href;
+    var baseUrl = document.getElementsByClassName("entry-title")[0].getElementsByTagName('strong')[0].getElementsByTagName('a')[0].href;
     baseUrl = baseUrl + (isPull ? "/pull/" : "/issues/");
 
-    var owner = document.getElementsByClassName("entry-title public")[0].getElementsByClassName("author")[0].getElementsByTagName("span")[0].innerHTML;
-    var repo = document.getElementsByClassName("entry-title public")[0].getElementsByTagName("strong")[0].getElementsByTagName("a")[0].innerHTML;
+    var owner = document.getElementsByClassName("entry-title")[0].getElementsByClassName("author")[0].getElementsByTagName("span")[0].innerHTML;
+    var repo = document.getElementsByClassName("entry-title")[0].getElementsByTagName("strong")[0].getElementsByTagName("a")[0].innerHTML;
 
     var body = "";
     var shortBody = "";
@@ -455,12 +455,12 @@ function sendmail(issueNumber, issueTitle, isPull) {
     issueTitle = issueTitle.trim();
     issueNumber = issueNumber.trim();
 
-    var baseUrl = document.getElementsByClassName("entry-title public")[0].getElementsByTagName('strong')[0].getElementsByTagName('a')[0].href;
+    var baseUrl = document.getElementsByClassName("entry-title")[0].getElementsByTagName('strong')[0].getElementsByTagName('a')[0].href;
     var kind = isPull ? "PR" : "Issue";
     baseUrl = baseUrl + (isPull ? "/pull/" : "/issues/");
 
-    var owner = document.getElementsByClassName("entry-title public")[0].getElementsByClassName("author")[0].getElementsByTagName("span")[0].innerHTML;
-    var repo = document.getElementsByClassName("entry-title public")[0].getElementsByTagName("strong")[0].getElementsByTagName("a")[0].innerHTML;
+    var owner = document.getElementsByClassName("entry-title")[0].getElementsByClassName("author")[0].getElementsByTagName("span")[0].innerHTML;
+    var repo = document.getElementsByClassName("entry-title")[0].getElementsByTagName("strong")[0].getElementsByTagName("a")[0].innerHTML;
 
     var subject = owner + "/" + repo + " " + kind + " #" + issueNumber + ": " + issueTitle;
 
