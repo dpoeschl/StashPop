@@ -346,6 +346,21 @@ function addButtonsToIssuesList() {
         if (typeof issuesList !== 'undefined' && ((isPull && response.data["emailPullRequestList"]) || (!isPull && response.data["emailIssuesList"]))) {
             var issues = issuesList.children;
 
+            var allselected = document.getElementsByClassName("js-check-all-count")[0];
+            var buttonAll = document.createElement("input");
+            buttonAll.setAttribute("type", "button");
+            buttonAll.setAttribute("value", "Email Selected " + (isPull ? "PRs" : "Issues"));
+            buttonAll.setAttribute("name", "buttonname");
+            buttonAll.onclick = (function() { 
+                return function() {
+	            sendmultimail(issuesList, isPull);
+	        };
+            })();
+            buttonAll.className = "btn btn-sm";
+
+            var number = document.getElementsByClassName("js-check-all-count")[0];
+            number.parentNode.insertBefore(buttonAll, number.parentNode.firstChild);
+
             for (var i = 0; i < issues.length; i++) {
                 var issue = issues[i];
                 var title = issue.getElementsByClassName("issue-title")[0];
@@ -383,6 +398,56 @@ function openJenkinsDetailsInNewTab() {
             }
         }
     });
+}
+
+function sendmultimail(issuesList, isPull) {
+    var baseUrl = document.getElementsByClassName("entry-title public")[0].getElementsByTagName('strong')[0].getElementsByTagName('a')[0].href;
+    baseUrl = baseUrl + (isPull ? "/pull/" : "/issues/");
+
+    var owner = document.getElementsByClassName("entry-title public")[0].getElementsByClassName("author")[0].getElementsByTagName("span")[0].innerHTML;
+    var repo = document.getElementsByClassName("entry-title public")[0].getElementsByTagName("strong")[0].getElementsByTagName("a")[0].innerHTML;
+
+    var body = "";
+    var shortBody = "";
+    var count = 0;
+    var singleIssueNumber = "";
+    var singleIssueTitle = "";
+    for (var i = 0; i < issuesList.children.length; i++) {
+        if (issuesList.children[i].classList.contains("selected")) {
+            count++;
+            var issue = issuesList.children[i];
+            var title = issue.getElementsByClassName("issue-title")[0];
+            var urlParts = title.getElementsByClassName("issue-title-link")[0].href.split("/");
+            var issueNumber = urlParts[urlParts.length - 1].trim();
+            var issueTitle = title.getElementsByClassName("issue-title-link")[0].innerHTML.trim();
+
+            singleIssueNumber = issueNumber;
+            singleIssueTitle = issueTitle;
+
+            body = body + issueTitle + " " + baseUrl + issueNumber + "\r\n";
+            shortBody = shortBody + "#" + issueNumber + ": " + issueTitle + "\r\n";
+        }
+    }
+
+    if (count == 1) {
+      sendmail(singleIssueNumber, singleIssueTitle, isPull);
+      return;
+    }
+
+    var subject = owner + "/" + repo + ": " + count + " Selected " + (isPull ? "PRs" : "Issues");
+    body = body + "\r\n\r\n"; // TODO: Assigned to, etc.
+
+    var finalFullMailToUrl = "mailto:?subject=" + encodeURIComponent(subject) + "&body=" + encodeURIComponent(body);
+    var finalShortMailToUrl = "mailto:?subject=" + encodeURIComponent(subject) + "&body=" + encodeURIComponent(shortBody);
+
+    if (finalFullMailToUrl.length <= 2083) {
+        window.location.href = finalFullMailToUrl;
+    } else if (finalShortMailToUrl.length <= 2083) {
+        window.location.href = finalShortMailToUrl;
+        window.alert("issue links omitted to fit within the maximum mailto url length");
+    } else {
+        window.alert("mailto maximum url length exceeded, choose fewer items");
+    }
 }
 
 function sendmail(issueNumber, issueTitle, isPull) {
