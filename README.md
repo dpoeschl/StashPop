@@ -1,5 +1,5 @@
-# EmailGitHubIssues
-Adds email buttons to GitHub
+# StashPop for GitHub
+Adds features to GitHub
 
 To install:
 
@@ -12,7 +12,7 @@ To update:
 
 1. Update to latest from the ```master``` branch.
 2. In chrome, navigate to [chrome://extensions/](chrome://extensions/).
-3. Click the "Reload" link under the "Email GitHub Issues" extension.
+3. Click the "Reload" link under the "StashPop for GitHub" extension.
 
 To allow access to your Jenkins host machine:
 
