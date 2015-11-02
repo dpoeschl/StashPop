@@ -34,7 +34,7 @@ function reload() {
 }
 
 function addIndividualIssueButton() {
-    var urlParts = stripTrailingSlash(window.location.href.substr(0, window.location.href.indexOf('#'))).split("/");
+    var urlParts = stripTrailingSlash(stripFragment(window.location.href)).split("/");
     var isPull = urlParts[urlParts.length - 2] == "pull";
 
     chrome.runtime.sendMessage({ method: "getSettings", keys: ["emailIssue", "emailPullRequest"] }, function (response) {
@@ -326,10 +326,11 @@ function makeBuildStatusWindowsBig() {
 }
 
 function stripTrailingSlash(str) {
-    if(str.substr(-1) === '/') {
-        return str.substr(0, str.length - 1);
-    }
-    return str;
+    return str.substr(-1) === '/' ? str.substring(0, str.length - 1) : str;
+}
+
+function stripFragment(str) {
+    return str.indexOf('#') >= 0 ? str.substring(0, str.indexOf('#')) : str;
 }
 
 function addButtonsToIssuesList() {
