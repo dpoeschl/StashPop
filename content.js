@@ -38,52 +38,52 @@ function addIndividualIssueButton() {
     var isPull = urlParts[urlParts.length - 2] == "pull";
 
     chrome.runtime.sendMessage({ method: "getSettings", keys: ["emailIssue", "emailPullRequest"] }, function (response) {
-        var titleElement = document.getElementsByClassName("js-issue-title")[0]
         if (typeof titleElement !== 'undefined' && ((isPull && response.data["emailPullRequest"]) || (!isPull && response.data["emailIssue"]))) {
-            var button = document.createElement("input");
-            button.setAttribute("type", "button");
-            button.setAttribute("value", isPull ? "Email PR" : "Email Issue");
-            button.setAttribute("name", "buttonname");
-            var issueNumber = document.getElementsByClassName("gh-header-number")[0].innerHTML.substring(1);
-            var issueTitle = document.getElementsByClassName("js-issue-title")[0].innerHTML;
-            button.onclick = (function () {
-                var currentTitle = issueTitle;
-                var currentNumber = issueNumber;
-                var currentIsPull = isPull;
-                return function () {
-                    sendmail(currentNumber, currentTitle, currentIsPull);
-                };
-            })();
-
-            button.className = "btn " + emailGitHubIssuesClassName;
-
-            if (!isPull)
-{
-            var button2 = document.createElement("input");
-            button2.setAttribute("type", "button");
-            button2.setAttribute("value", "Copy as Workitem Attribute");
-            var issueNumber = document.getElementsByClassName("gh-header-number")[0].innerHTML.substring(1);
-            var str = '<WorkItem(';
-            var str2= '")>';
-            var str3 = str + issueNumber + ', "' + window.location.href + str2;
-
-            button2.onclick = (function () {
-                return function () {
-                    copyTextToClipboard(str3);
-                };
-            })();
-
-            button2.className = "btn " + emailGitHubIssuesClassName;
-
+            var titleElement = document.getElementsByClassName("js-issue-title")[0]
             var div = document.createElement("div");
             div.setAttribute("class", emailGitHubIssuesClassName);
+
+            var issueNumber = document.getElementsByClassName("gh-header-number")[0].innerHTML.substring(1);
+            var issueTitle = document.getElementsByClassName("js-issue-title")[0].innerHTML;
+
+            button = createButtonWithCallBack(isPull ? "Email PR" : "Email Issue",
+                        function () {
+                            var currentTitle = issueTitle;
+                            var currentNumber = issueNumber;
+                            var currentIsPull = isPull;
+                            sendmail(currentNumber, currentTitle, currentIsPull);
+                        });
             div.appendChild(button);
-            div.appendChild(button2);
-            titleElement.parentNode.appendChild(div);
+
+            if (!isPull)
+            {
+                var issueNumber = document.getElementsByClassName("gh-header-number")[0].innerHTML.substring(1);
+                var workItemPrefix = '<WorkItem(';
+                var workItemSuffix= '")>';
+                var workItemString = workItemPrefix + issueNumber + ', "' + window.location.href + workItemSuffix;
+
+                var button3 = createButtonWithCallBack("Copy as WorkItem Attribute",
+                        function() { var copyable = workItemString;
+                        copyTextToClipboard(copyable);} )
+                div.appendChild(button3);
             }
-           
+            
+            titleElement.parentNode.appendChild(div);       
         }
     });
+}
+
+function createButtonWithCallBack(title, callback)
+{
+    var button = document.createElement("input");
+    button.setAttribute("type", "button");
+    button.setAttribute("value", title);
+
+    button.onclick = (function () {
+        return callback;
+    })();
+
+    return button;
 }
 
 // Copy provided text to the clipboard.
@@ -95,7 +95,6 @@ function copyTextToClipboard(text) {
     document.execCommand('copy');
     copyFrom.remove();
 }
-
 
 // TODO: Only scrape once between this and addTestFailureButtonsAndDescriptions
 function addJenkinsTestRunTimes() {
