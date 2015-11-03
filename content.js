@@ -56,10 +56,51 @@ function addIndividualIssueButton() {
             })();
 
             button.className = "btn " + emailGitHubIssuesClassName;
-            titleElement.parentNode.insertBefore(button, document.getElementsByClassName("js-issue-title")[0].parentNode.firstChild);
+
+            if (!isPull)
+{
+            var button2 = document.createElement("input");
+            button2.setAttribute("type", "button");
+            button2.setAttribute("value", "Copy as Workitem Attribute");
+            //button2.setAttribute("name", "button2name");
+            var issueNumber = document.getElementsByClassName("gh-header-number")[0].innerHTML.substring(1);
+            var str = '<WorkItem(';
+            var str2= '")>';
+            var str3 = str + issueNumber + ', "' + window.location.href + str2;
+
+            var issueTitle = document.getElementsByClassName("js-issue-title")[0].innerHTML;
+            button2.onclick = (function () {
+                var currentTitle = issueTitle;
+                var currentNumber = issueNumber;
+                var currentIsPull = isPull;
+                return function () {
+                    copyTextToClipboard(str3);
+                };
+            })();
+
+            button2.className = "btn " + emailGitHubIssuesClassName;
+
+            var div = document.createElement("div");
+            div.setAttribute("class", emailGitHubIssuesClassName);
+            div.appendChild(button);
+            div.appendChild(button2);
+            titleElement.parentNode.appendChild(div);
+            }
+           
         }
     });
 }
+
+// Copy provided text to the clipboard.
+function copyTextToClipboard(text) {
+    var copyFrom = $('<textarea/>');
+    copyFrom.text(text);
+    $('body').append(copyFrom);
+    copyFrom.select();
+    document.execCommand('copy');
+    copyFrom.remove();
+}
+
 
 // TODO: Only scrape once between this and addTestFailureButtonsAndDescriptions
 function addJenkinsTestRunTimes() {
