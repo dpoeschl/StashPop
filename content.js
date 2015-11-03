@@ -40,25 +40,60 @@ function addIndividualIssueButton() {
     chrome.runtime.sendMessage({ method: "getSettings", keys: ["emailIssue", "emailPullRequest"] }, function (response) {
         var titleElement = document.getElementsByClassName("js-issue-title")[0]
         if (typeof titleElement !== 'undefined' && ((isPull && response.data["emailPullRequest"]) || (!isPull && response.data["emailIssue"]))) {
-            var button = document.createElement("input");
-            button.setAttribute("type", "button");
-            button.setAttribute("value", isPull ? "Email PR" : "Email Issue");
-            button.setAttribute("name", "buttonname");
+            var div = document.createElement("div");
+            div.setAttribute("class", emailGitHubIssuesClassName);
+
             var issueNumber = document.getElementsByClassName("gh-header-number")[0].innerHTML.substring(1);
             var issueTitle = document.getElementsByClassName("js-issue-title")[0].innerHTML;
-            button.onclick = (function () {
-                var currentTitle = issueTitle;
-                var currentNumber = issueNumber;
-                var currentIsPull = isPull;
-                return function () {
-                    sendmail(currentNumber, currentTitle, currentIsPull);
-                };
-            })();
 
-            button.className = "btn " + emailGitHubIssuesClassName;
-            titleElement.parentNode.insertBefore(button, document.getElementsByClassName("js-issue-title")[0].parentNode.firstChild);
+            button = createButtonWithCallBack(isPull ? "Email PR" : "Email Issue",
+                        function () {
+                            var currentTitle = issueTitle;
+                            var currentNumber = issueNumber;
+                            var currentIsPull = isPull;
+                            sendmail(currentNumber, currentTitle, currentIsPull);
+                        });
+            div.appendChild(button);
+
+            if (!isPull)
+            {
+                var issueNumber = document.getElementsByClassName("gh-header-number")[0].innerHTML.substring(1);
+                var workItemPrefix = '<WorkItem(';
+                var workItemSuffix= '")>';
+                var workItemString = workItemPrefix + issueNumber + ', "' + window.location.href + workItemSuffix;
+
+                var button3 = createButtonWithCallBack("Copy as WorkItem Attribute",
+                        function() { var copyable = workItemString;
+                        copyTextToClipboard(copyable);} )
+                div.appendChild(button3);
+            }
+            
+            titleElement.parentNode.appendChild(div);       
         }
     });
+}
+
+function createButtonWithCallBack(title, callback)
+{
+    var button = document.createElement("input");
+    button.setAttribute("type", "button");
+    button.setAttribute("value", title);
+
+    button.onclick = (function () {
+        return callback;
+    })();
+
+    return button;
+}
+
+// Copy provided text to the clipboard.
+function copyTextToClipboard(text) {
+    var copyFrom = $('<textarea/>');
+    copyFrom.text(text);
+    $('body').append(copyFrom);
+    copyFrom.select();
+    document.execCommand('copy');
+    copyFrom.remove();
 }
 
 // TODO: Only scrape once between this and addTestFailureButtonsAndDescriptions
