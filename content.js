@@ -62,17 +62,12 @@ function addIndividualIssueButton() {
             var button2 = document.createElement("input");
             button2.setAttribute("type", "button");
             button2.setAttribute("value", "Copy as Workitem Attribute");
-            //button2.setAttribute("name", "button2name");
             var issueNumber = document.getElementsByClassName("gh-header-number")[0].innerHTML.substring(1);
             var str = '<WorkItem(';
             var str2= '")>';
             var str3 = str + issueNumber + ', "' + window.location.href + str2;
 
-            var issueTitle = document.getElementsByClassName("js-issue-title")[0].innerHTML;
             button2.onclick = (function () {
-                var currentTitle = issueTitle;
-                var currentNumber = issueNumber;
-                var currentIsPull = isPull;
                 return function () {
                     copyTextToClipboard(str3);
                 };
