@@ -38,8 +38,8 @@ function addIndividualIssueButton() {
     var isPull = urlParts[urlParts.length - 2] == "pull";
 
     chrome.runtime.sendMessage({ method: "getSettings", keys: ["emailIssue", "emailPullRequest"] }, function (response) {
+        var titleElement = document.getElementsByClassName("js-issue-title")[0]
         if (typeof titleElement !== 'undefined' && ((isPull && response.data["emailPullRequest"]) || (!isPull && response.data["emailIssue"]))) {
-            var titleElement = document.getElementsByClassName("js-issue-title")[0]
             var div = document.createElement("div");
             div.setAttribute("class", emailGitHubIssuesClassName);
 
