@@ -1,5 +1,6 @@
 # StashPop for GitHub
 Adds features to GitHub, with extra Jenkins goodness on https://github.com/dotnet/ repositories.
+
 Note: Added UI elements are visually optimized for users also running [Wide Github](https://github.com/xthexder/wide-github) (from [xthexder](https://github.com/xthexder/))
 
 **Features:**
