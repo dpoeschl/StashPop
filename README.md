@@ -1,3 +1,5 @@
+![stashpop](https://github.com/dpoeschl/StashPop/tree/master/images/stashpop_logo.png)
+
 # StashPop for GitHub
 Adds features to GitHub, with extra Jenkins goodness on https://github.com/dotnet/ repositories.
 
