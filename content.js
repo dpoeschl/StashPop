@@ -367,7 +367,7 @@ function addTestFailureButtonsAndDescriptions() {
                                     htmlDescription = "Unknown";
                                 }
 
-                                div.innerHTML = htmlDescription;
+                                div.innerHTML = htmlDescription.trim();
                                 div.style.backgroundColor = "#FFAAAA";
                                 div.className = emailGitHubIssuesClassName;
                                 _testFailure.parentNode.appendChild(div);
