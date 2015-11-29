@@ -34,3 +34,10 @@ Note: Added UI elements are visually optimized for users also running [Wide Gith
 
 1. Add your domain to the local ```manifest.json``` file's ```"permissions"``` section as ```"http://yourjenkinsserver/*"```
 2. Reload the extension
+
+**Issue Management Shortcuts**
+
+1. Traige - <a href="https://github.com/dpoeschl/StashPop/issues?q=is%3Aopen+is%3Aissue+no%3Amilestone" target="_blank">No Milestone</a>
+2. Triage - <a href="https://github.com/dpoeschl/StashPop/issues?utf8=%E2%9C%93&q=is%3Aopen+is%3Aissue+-label%3AKind-Enhancement+-label%3AKind-Bug" target="_blank">No Kind</a>
+3. Reporting - <a href="https://github.com/dpoeschl/StashPop/issues?utf8=%E2%9C%93&q=is%3Aopen+is%3Aissue+-author%3Adpoeschl" target="_blank">Open customer issues</a>
+4. Reporting - <a href="https://github.com/dpoeschl/StashPop/pulls?q=is%3Aopen+-author%3Adpoeschl+is%3Apr" target="_blank">Open customer PRs</a>
