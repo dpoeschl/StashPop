@@ -4,7 +4,7 @@ document.addEventListener("DOMContentLoaded", function () {
     reload();
 });
 
-var emailGitHubIssuesClassName = "emailGitHubIssues";
+var stashPopClassName = "stashPop";
 var jenkinsReloadableInfoClassName = "jenkinsReloadableInfo";
 
 function initialSetup() {
@@ -22,7 +22,7 @@ function initialSetup() {
 }
 
 function reload() {
-    $('.' + emailGitHubIssuesClassName).remove();
+    $('.' + stashPopClassName).remove();
 
     addIndividualIssueButton();
     addButtonsToIssuesList();
@@ -48,7 +48,7 @@ function addIndividualIssueButton() {
         var titleElement = document.getElementsByClassName("js-issue-title")[0]
         if (typeof titleElement !== 'undefined' && ((isPull && response.data["emailPullRequest"]) || (!isPull && response.data["emailIssue"]))) {
             var div = document.createElement("div");
-            div.setAttribute("class", emailGitHubIssuesClassName);
+            div.setAttribute("class", stashPopClassName);
 
             var issueNumber = document.getElementsByClassName("gh-header-number")[0].innerHTML.substring(1);
             var issueTitle = document.getElementsByClassName("js-issue-title")[0].innerHTML;
@@ -121,8 +121,8 @@ function addJenkinsTestRunTimes() {
                 var loading = document.createElement("img");
                 var imgUrl = chrome.extension.getURL("images/loading.gif");
                 loading.src = imgUrl;
-                var specificClassName = emailGitHubIssuesClassName + "_TestRunTime_" + i;
-                loading.className = emailGitHubIssuesClassName + " " + specificClassName;
+                var specificClassName = stashPopClassName + "_TestRunTime_" + i;
+                loading.className = stashPopClassName + " " + specificClassName;
                 textToUpdate.appendChild(loading);
 
                 (function (_run, _url, _specificClassName) {
@@ -165,7 +165,7 @@ function addJenkinsTestRunTimes() {
                         span.innerHTML = "(" + timeAgo + ")";
                         span.style.backgroundColor = backgroundColor;
                         span.setAttribute("title", timestamp + "\n\nGreen: < 2 days\nYellow: 2 to 5 days\nRed: > 5 days");
-                        span.className = emailGitHubIssuesClassName + " " + jenkinsReloadableInfoClassName;
+                        span.className = stashPopClassName + " " + jenkinsReloadableInfoClassName;
                         textToUpdate.appendChild(span);
                     });
                 })(run, detailsLink.href, specificClassName);
@@ -200,8 +200,8 @@ function addTestFailureButtonsAndDescriptions() {
                     var loading = document.createElement("img");
                     var imgUrl = chrome.extension.getURL("images/loading.gif");
                     loading.src = imgUrl;
-                    var specificClassName = emailGitHubIssuesClassName + "_TestFailures_" + i;
-                    loading.className = emailGitHubIssuesClassName + " " + specificClassName;
+                    var specificClassName = stashPopClassName + "_TestFailures_" + i;
+                    loading.className = stashPopClassName + " " + specificClassName;
                     testFailure.parentNode.insertBefore(loading, testFailure.parentNode.firstChild);
 
                     (function (_testFailure, _testFailUrl, _specificClassName) {
@@ -345,7 +345,7 @@ function addTestFailureButtonsAndDescriptions() {
                                     };
                                 })();
 
-                                retestButton.className = "btn btn-sm " + emailGitHubIssuesClassName + " " + jenkinsReloadableInfoClassName;
+                                retestButton.className = "btn btn-sm " + stashPopClassName + " " + jenkinsReloadableInfoClassName;
                                 retestButton.style.margin = "0px 0px 3px 0px";
 
                                 _testFailure.parentNode.insertBefore(retestButton, _testFailure.parentNode.firstChild);
@@ -361,7 +361,7 @@ function addTestFailureButtonsAndDescriptions() {
                                     };
                                 })();
 
-                                button.className = "btn btn-sm " + emailGitHubIssuesClassName + " " + jenkinsReloadableInfoClassName;
+                                button.className = "btn btn-sm " + stashPopClassName + " " + jenkinsReloadableInfoClassName;
                                 button.style.margin = "0px 0px 3px 0px";
 
                                 _testFailure.parentNode.insertBefore(button, _testFailure.parentNode.firstChild);
@@ -376,7 +376,7 @@ function addTestFailureButtonsAndDescriptions() {
 
                                 div.innerHTML = htmlDescription.trim();
                                 div.style.backgroundColor = "#FFAAAA";
-                                div.className = emailGitHubIssuesClassName + " " + jenkinsReloadableInfoClassName;
+                                div.className = stashPopClassName + " " + jenkinsReloadableInfoClassName;
                                 _testFailure.parentNode.appendChild(div);
                             }
                         });
@@ -399,7 +399,7 @@ function addJenkinsRefreshButton() {
         var list = lists[i];
         var a = document.createElement("a");
         a.href = "#";
-        a.className = emailGitHubIssuesClassName + " " + jenkinsReloadableInfoClassName + " jenkinsreload";
+        a.className = stashPopClassName + " " + jenkinsReloadableInfoClassName + " jenkinsreload";
         a.text = "Reload Jenkins data";
         list.previousSibling.previousSibling.appendChild(a);
     }
@@ -466,7 +466,7 @@ function addButtonsToIssuesList() {
                         sendmail(currentNumber, currentTitle, isPull);
                     };
                 })();
-                button.className = "btn btn-sm " + emailGitHubIssuesClassName;
+                button.className = "btn btn-sm " + stashPopClassName;
 
                 title.insertBefore(button, title.firstChild);
             }
