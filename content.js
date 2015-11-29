@@ -371,7 +371,7 @@ function addTestFailureButtonsAndDescriptions() {
                                 var div = document.createElement("div");
 
                                 if (typeof htmlDescription === "undefined" || htmlDescription == "") {
-                                    htmlDescription = "Unknown";
+                                    htmlDescription = "Unknown Failure - If this is a private Jenkins job, you may need to re-authenticate by clicking the 'Details' button.";
                                 }
 
                                 div.innerHTML = htmlDescription.trim();
