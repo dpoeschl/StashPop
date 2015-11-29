@@ -134,7 +134,6 @@ function addJenkinsTestRunTimes() {
                         }
 
                         var timestamp = header.innerText.split("(")[1].split(")")[0];
-                        var timestampDisplay = " [Run on " + timestamp + ". "
 
                         // TODO: time zones?
                         var date = new Date(Date.parse(timestamp));
@@ -156,21 +155,11 @@ function addJenkinsTestRunTimes() {
                         var textToUpdate = _run.getElementsByClassName("text-muted")[0];
 
                         var span = document.createElement("span");
-                        span.innerHTML = timestampDisplay;
+                        span.innerHTML = "(" + timeAgo + ")";
+                        span.style.backgroundColor = backgroundColor;
+                        span.setAttribute("title", timestamp + "\n\nGreen: < 2 days\nYellow: 2 to 5 days\nRed: > 5 days");
                         span.className = emailGitHubIssuesClassName;
                         textToUpdate.appendChild(span);
-
-                        var span2 = document.createElement("span");
-                        span2.innerHTML = "(" + timeAgo + ")";
-                        span2.style.backgroundColor = backgroundColor;
-                        span2.setAttribute("title", "Green: < 2 days\nYellow: 2 to 5 days\nRed: > 5 days");
-                        span2.className = emailGitHubIssuesClassName;
-                        textToUpdate.appendChild(span2);
-
-                        var span3 = document.createElement("span");
-                        span3.innerHTML = "]";
-                        span3.className = emailGitHubIssuesClassName;
-                        textToUpdate.appendChild(span3);
                     });
                 })(run, detailsLink.href, specificClassName);
             }
