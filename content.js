@@ -305,12 +305,44 @@ function addTestFailureButtonsAndDescriptions() {
 
                             var testQueueName = _testFailure.parentNode.getElementsByClassName("text-emphasized")[0].innerText.trim();
                             var issueTitle = "[Test Failure] " + issueDescription + " in " + testQueueName + " on PR #" + pullNumber;
+                            var previousFailureUrl = _testFailUrl;
 
                             var url = "https://github.com/dotnet/roslyn/issues/new?title=" + encodeURIComponent(issueTitle) + "&body=" + encodeURIComponent(issueBody) + "&labels[]=Area-Infrastructure&labels[]=Contributor%20Pain";
+                            var jobName = testQueueName;
 
                             $('.' + _specificClassName).remove();
 
                             if (response.data["jenkinsShowBugFilingButton"]) {
+                                var retestButton = document.createElement("input");
+                                retestButton.setAttribute("type", "button");
+                                retestButton.setAttribute("value", "Retest");
+                                retestButton.setAttribute("name", "buttonname");
+                                retestButton.onclick = (function () {
+                                    var thisUrl = url//;
+                                    var thisJobName = jobName;
+                                    var thisPreviousFailureUrl = previousFailureUrl;
+                                    return function () {
+                                        var commentText = "retest " + thisJobName + " please\n// Previous failure: " + thisPreviousFailureUrl + "\n// Retest reason: ";
+                                        $("#new_comment_field").val(commentText);
+
+                                        var offset = $("#new_comment_field").offset();
+                                        offset.left -= 20;
+                                        offset.top -= 20;
+                                        $('html, body').animate({
+                                            scrollTop: offset.top,
+                                            scrollLeft: offset.left
+                                        });
+
+                                        $("#new_comment_field").stop().css("background-color", "#FFFF9C")
+                                            .animate({ backgroundColor: "#FFFFFF"}, 1500);
+                                    };
+                                })();
+
+                                retestButton.className = "btn btn-sm " + emailGitHubIssuesClassName;
+                                retestButton.style.margin = "0px 0px 3px 0px";
+
+                                _testFailure.parentNode.insertBefore(retestButton, _testFailure.parentNode.firstChild);
+
                                 var button = document.createElement("input");
                                 button.setAttribute("type", "button");
                                 button.setAttribute("value", "Create Issue");
@@ -330,6 +362,11 @@ function addTestFailureButtonsAndDescriptions() {
 
                             if (response.data["jenkinsShowFailureIndications"]) {
                                 var div = document.createElement("div");
+
+                                if (typeof htmlDescription === "undefined" || htmlDescription == "") {
+                                    htmlDescription = "Unknown";
+                                }
+
                                 div.innerHTML = htmlDescription;
                                 div.style.backgroundColor = "#FFAAAA";
                                 div.className = emailGitHubIssuesClassName;
