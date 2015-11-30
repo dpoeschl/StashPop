@@ -522,6 +522,13 @@ function sendmultimail(issuesList, isPull) {
 
     var subject = owner + "/" + repo + ": " + count + " Selected " + (isPull ? "PRs" : "Issues");
     body = body + "\r\n\r\n"; // TODO: Assigned to, etc.
+    shortBody = shortBody + "\r\n\r\n"; // TODO: Assigned to, etc.
+
+    var isPublic = (typeof document.getElementsByClassName("entry-title private")[0] === "undefined");
+    if (!isPublic) {
+        body = body + "Notice: This message contains information about a private repository."
+        shortBody = shortBody + "Notice: This message contains information about a private repository."
+    }
 
     var finalFullMailToUrl = "mailto:?subject=" + encodeURIComponent(subject) + "&body=" + encodeURIComponent(body);
     var finalShortMailToUrl = "mailto:?subject=" + encodeURIComponent(subject) + "&body=" + encodeURIComponent(shortBody);
@@ -550,6 +557,10 @@ function sendmail(issueNumber, issueTitle, isPull) {
     var subject = owner + "/" + repo + " " + kind + " #" + issueNumber + ": " + issueTitle;
 
     var body = baseUrl + issueNumber + "\r\n\r\n"; // TODO: Assigned to, etc.
+    var isPublic = (typeof document.getElementsByClassName("entry-title private")[0] === "undefined");
+    if (!isPublic) {
+        body = body + "Notice: This message contains information about a private repository."
+    }
 
     window.location.href = "mailto:?subject=" + encodeURI(subject) + "&body=" + encodeURI(body);
 }
