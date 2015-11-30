@@ -1,5 +1,6 @@
 document.addEventListener("DOMContentLoaded", function () {
     "use strict";
+    log("DOMContentLoaded");
     initialSetup();
     reload();
 });
@@ -7,7 +8,14 @@ document.addEventListener("DOMContentLoaded", function () {
 var stashPopClassName = "stashPop";
 var jenkinsReloadableInfoClassName = "jenkinsReloadableInfo";
 
+function log(message)
+{
+    console.log("StashPop: " + message);
+}
+
 function initialSetup() {
+    log("Performing initial setup");
+
     var s = document.createElement('script');
     s.src = chrome.extension.getURL('scripts/injectedcode.js');
     s.onload = function () {
@@ -17,16 +25,20 @@ function initialSetup() {
     (document.head || document.documentElement).appendChild(s);
 
     document.addEventListener('_pjax:end', function () {
+        log("Detected page data changed.");
         reload();
     }, false);
 }
 
 function reload() {
+    log("Remove all StashPop elements and reload data");
     $('.' + stashPopClassName).remove();
 
+    log("Adding Issue/PR buttons");
     addIndividualIssueButton();
     addButtonsToIssuesList();
 
+    log("Fixing general Jenkins layout/usability");
     openJenkinsDetailsInNewTab();
     makeBuildStatusWindowsBig();
 
@@ -34,6 +46,7 @@ function reload() {
 }
 
 function reloadJenkins() {
+    log("Reloading Jenkins run data");
     $('.' + jenkinsReloadableInfoClassName).remove();
     addTestFailureButtonsAndDescriptions();
     addJenkinsTestRunTimes();
