@@ -12,10 +12,12 @@ Note: Added UI elements are visually optimized for users also running [Wide Gith
   - Emails are created in your default email application (<a href="screenshots/issueemail.png" target="_blank">screenshot</a>)
 
 2. Jenkins PR support (supports https://github.com/dotnet/ repositories by default, add your own in manifest.json)
+  - Inlines Jenkins build & test failure descriptions in the PR view
+  - Inlines Jenkins build & test failures for individual PRs into the PR list view
   - Shows how long ago a Jenkins build ran (<a href="screenshots/jenkinsresults.png" target="_blank">screenshot</a>)
-  - Shows the Jenkins build & test failure descriptions in the PR 
   - Opens Jenkins "details" links in a new tab
   - Adds "Create Issue" buttons to each Jenkins test failure (<a href="screenshots/createdissue.png" target="_blank">screenshot</a>)
+  - Adds a "Retest" button to each Jenkins test failure
 
 **To install:**
 
