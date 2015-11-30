@@ -63,7 +63,7 @@ function reloadJenkins() {
 }
 
 function addIndividualIssueButton() {
-    var urlParts = stripTrailingSlash(stripFragment(window.location.href)).split("/");
+    var urlParts = normalizeAndRemoveUrlParameters(window.location.href).split("/");
     var isPull = urlParts[urlParts.length - 2] == "pull";
 
     chrome.runtime.sendMessage({ method: "getSettings", keys: ["emailIssue", "emailPullRequest"] }, function (response) {
@@ -489,8 +489,18 @@ function addJenkinsRefreshButton() {
     });
 }
 
+function normalizeAndRemoveUrlParameters(str) {
+    str = stripFragment(str);
+    str = stripQueryString(str);
+    return stripTrailingSlash(str);
+}
+
 function stripTrailingSlash(str) {
     return str.substr(-1) === '/' ? str.substring(0, str.length - 1) : str;
+}
+
+function stripQueryString(str) {
+    return str.indexOf('?') >= 0 ? str.substring(0, str.indexOf('?')) : str;
 }
 
 function stripFragment(str) {
@@ -498,7 +508,7 @@ function stripFragment(str) {
 }
 
 function addButtonsToIssuesList() {
-    var url = stripTrailingSlash(window.location.href);
+    var url = normalizeAndRemoveUrlParameters(window.location.href);
     var urlParts = url.split("/");
 
     var isPull = false;
