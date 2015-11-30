@@ -199,12 +199,12 @@ function addJenkinsTestRunTimes() {
 function addTestFailureButtonsAndDescriptions() {
     chrome.runtime.sendMessage({ method: "getSettings", keys: ["jenkinsShowBugFilingButton", "jenkinsShowFailureIndications", "jenkinsShowTestFailures"] }, function (response) {
         if (response.data["jenkinsShowBugFilingButton"] || response.data["jenkinsShowFailureIndications"]) {
-            processTestFailures(document, null, function (x, y, z) { });
+            processTestFailures(document, null, null, 0, function (x, y, z, w) { });
         }
     });
 }
 
-function processTestFailures(doc, prLoadingDiv, callbackWhenTestProcessed) {
+function processTestFailures(doc, prLoadingDiv, rowNumber, callbackWhenTestProcessed) {
     var testFailures = doc.getElementsByClassName("octicon-x build-status-icon");
 
     if (typeof prLoadingDiv !== "undefined" && prLoadingDiv !== null) {
@@ -230,7 +230,7 @@ function processTestFailures(doc, prLoadingDiv, callbackWhenTestProcessed) {
             }
 
             var div = document.createElement("div");
-            var specificClassName = stashPopClassName + "_ActualTestFailureHolder_" + i;
+            var specificClassName = stashPopClassName + "_ActualTestFailureHolder_" + rowNumber + "_" + i;
             div.className = stashPopClassName + " " + specificClassName;
             div.style.color = "#000000";
 
@@ -274,7 +274,7 @@ function processTestFailures(doc, prLoadingDiv, callbackWhenTestProcessed) {
         loading.className = stashPopClassName + " " + specificClassNameForJenkinsFailureRedAreaLoader;
         testFailure.parentNode.insertBefore(loading, testFailure.parentNode.firstChild);
 
-        var specificClassNameForPRListFailure = stashPopClassName + "_ActualTestFailureHolder_" + i;
+        var specificClassNameForPRListFailure = stashPopClassName + "_ActualTestFailureHolder_" + rowNumber + "_" + i;
 
         (function (_testFailure, _testFailUrl, _specificClassNameForPRListFailure, _specificClassNameForJenkinsFailureRedAreaLoader, _queueName) {
             chrome.runtime.sendMessage({
@@ -459,7 +459,7 @@ function processTestFailures(doc, prLoadingDiv, callbackWhenTestProcessed) {
 
                 $("." + _specificClassNameForJenkinsFailureRedAreaLoader).remove();
 
-                callbackWhenTestProcessed(_queueName, htmlDescription, _specificClassNameForPRListFailure);
+                callbackWhenTestProcessed(_queueName, _testFailUrl, htmlDescription, _specificClassNameForPRListFailure);
             });
         })(testFailure, testFailUrl, specificClassNameForPRListFailure, specificClassNameForJenkinsFailureRedAreaLoader, queueName);
     }
@@ -658,15 +658,16 @@ function inlineFailureInfoToPRList(title, className, i) {
             processTestFailures(
                 doc,
                 _prLoadingDiv,
-                function (failurequeue, resultstr, classNameToPlaseResultsIn) {
-                    var divToPlaceResultsIn = _divToAddTo; 
+                i,
+                function (failurequeue, detailsurl, resultstr, classNameToPlaseResultsIn) {
+                    var divToPlaceResultsIn = document.getElementsByClassName(classNameToPlaseResultsIn)[0];
                     while (divToPlaceResultsIn.firstChild) {
                         divToPlaceResultsIn.removeChild(divToPlaceResultsIn.firstChild);
                     }
 
                     var _individualFailureDiv = document.createElement("div");
                     var _span = document.createElement("span");
-                    _span.innerHTML = "<b><u>" + failurequeue + "</u></b><br />";
+                    _span.innerHTML = "<b><u>" + failurequeue + "</u></b> <a href = '" + encodeURI(detailsurl) + "' target='_blank'>Details</a><br />";
                     _individualFailureDiv.appendChild(_span);
 
                     var _nestedDiv = document.createElement("div");
