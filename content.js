@@ -454,20 +454,21 @@ function addButtonsToIssuesList() {
         if (typeof issuesList !== 'undefined' && ((isPull && response.data["emailPullRequestList"]) || (!isPull && response.data["emailIssuesList"]))) {
             var issues = issuesList.children;
 
-            var allselected = document.getElementsByClassName("js-check-all-count")[0];
-            var buttonAll = document.createElement("input");
-            buttonAll.setAttribute("type", "button");
-            buttonAll.setAttribute("value", "Email Selected " + (isPull ? "PRs" : "Issues"));
-            buttonAll.setAttribute("name", "buttonname");
-            buttonAll.onclick = (function() { 
-                return function() {
-	            sendmultimail(issuesList, isPull);
-	        };
-            })();
-            buttonAll.className = "btn btn-sm";
-
             var number = document.getElementsByClassName("js-check-all-count")[0];
-            number.parentNode.insertBefore(buttonAll, number.parentNode.firstChild);
+            if (typeof number !== "undefined") {
+                var buttonAll = document.createElement("input");
+                buttonAll.setAttribute("type", "button");
+                buttonAll.setAttribute("value", "Email Selected " + (isPull ? "PRs" : "Issues"));
+                buttonAll.setAttribute("name", "buttonname");
+                buttonAll.onclick = (function () {
+                    return function () {
+                        sendmultimail(issuesList, isPull);
+                    };
+                })();
+                buttonAll.className = "btn btn-sm";
+
+                number.parentNode.insertBefore(buttonAll, number.parentNode.firstChild);
+            }
 
             for (var i = 0; i < issues.length; i++) {
                 var issue = issues[i];
