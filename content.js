@@ -179,7 +179,7 @@ function addJenkinsTestRunTimes() {
                         else if (dayCount <= 5) { backgroundColor = "#FFC85A"; } // yellow
                         else { backgroundColor = "#FFAAAA"; } // red
 
-			$('.' + _specificClassName).remove();
+			            $('.' + _specificClassName).remove();
 
                         var textToUpdate = _run.getElementsByClassName("text-muted")[0];
 
@@ -206,7 +206,6 @@ function addTestFailureButtonsAndDescriptions() {
 
 function processTestFailures(doc, prLoadingDiv, callbackWhenTestProcessed) {
     var testFailures = doc.getElementsByClassName("octicon-x build-status-icon");
-    var fullDocumentFailureReport = "wat";
 
     if (typeof prLoadingDiv !== "undefined" && prLoadingDiv !== null) {
         // Delete the existing loading icon
@@ -238,8 +237,6 @@ function processTestFailures(doc, prLoadingDiv, callbackWhenTestProcessed) {
             var loading = doc.createElement("img");
             var imgUrl = chrome.extension.getURL("images/loading.gif");
             loading.src = imgUrl;
-            var specificClassName = stashPopClassName + "_ActualTestFailureHolder_" + i;
-            loading.className = stashPopClassName + " " + specificClassName;
 
             var testFailure = testFailures[i];
             var queueName = testFailure.parentNode.getElementsByClassName("text-emphasized")[0].innerText.trim();
@@ -273,13 +270,13 @@ function processTestFailures(doc, prLoadingDiv, callbackWhenTestProcessed) {
         var loading = doc.createElement("img");
         var imgUrl = chrome.extension.getURL("images/loading.gif");
         loading.src = imgUrl;
-        var specificClassName = stashPopClassName + "_TestFailures_" + i;
-        loading.className = stashPopClassName + " " + specificClassName;
+        var specificClassNameForJenkinsFailureRedAreaLoader = stashPopClassName + "_TestFailures_" + i;
+        loading.className = stashPopClassName + " " + specificClassNameForJenkinsFailureRedAreaLoader;
         testFailure.parentNode.insertBefore(loading, testFailure.parentNode.firstChild);
 
-        var specificClassName = stashPopClassName + "_ActualTestFailureHolder_" + i;
+        var specificClassNameForPRListFailure = stashPopClassName + "_ActualTestFailureHolder_" + i;
 
-        (function (_testFailure, _testFailUrl, _specificClassName, _queueName) {
+        (function (_testFailure, _testFailUrl, _specificClassNameForPRListFailure, _specificClassNameForJenkinsFailureRedAreaLoader, _queueName) {
             chrome.runtime.sendMessage({
                 method: 'GET',
                 action: 'xhttp',
@@ -460,9 +457,11 @@ function processTestFailures(doc, prLoadingDiv, callbackWhenTestProcessed) {
                     _testFailure.parentNode.appendChild(div);
                 }
 
-                callbackWhenTestProcessed(_queueName, htmlDescription, _specificClassName);
+                $("." + _specificClassNameForJenkinsFailureRedAreaLoader).remove();
+
+                callbackWhenTestProcessed(_queueName, htmlDescription, _specificClassNameForPRListFailure);
             });
-        })(testFailure, testFailUrl, specificClassName, queueName);
+        })(testFailure, testFailUrl, specificClassNameForPRListFailure, specificClassNameForJenkinsFailureRedAreaLoader, queueName);
     }
 }
 
@@ -624,6 +623,8 @@ function inlineFailureInfoToPRList(title, className, i) {
 
     $("." + className).remove();
 
+    log("Inlining Jenkins failure to PR list for " + className + "(position " + i + " on this page)");
+
     var thisFailureUrl = title.getElementsByClassName("issue-title-link")[0].href;
 
     var redDiv = document.createElement("div");
@@ -643,7 +644,6 @@ function inlineFailureInfoToPRList(title, className, i) {
     var specificClassName = stashPopClassName + "_LoadPRContents_" + i;
     prLoadingDiv.className = specificClassName;
 
-
     redDiv.appendChild(prLoadingDiv);
 
     (function (_thisFailureUrl, _divToAddTo, _prLoadingDiv) {
@@ -659,8 +659,7 @@ function inlineFailureInfoToPRList(title, className, i) {
                 doc,
                 _prLoadingDiv,
                 function (failurequeue, resultstr, classNameToPlaseResultsIn) {
-                    var divToPlaceResultsIn = document.getElementsByClassName(classNameToPlaseResultsIn)[0];
-
+                    var divToPlaceResultsIn = _divToAddTo; 
                     while (divToPlaceResultsIn.firstChild) {
                         divToPlaceResultsIn.removeChild(divToPlaceResultsIn.firstChild);
                     }
