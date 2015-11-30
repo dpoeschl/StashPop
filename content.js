@@ -1,12 +1,21 @@
 document.addEventListener("DOMContentLoaded", function () {
     "use strict";
     log("DOMContentLoaded");
-    initialSetup();
-    reload();
+    try {
+        initialSetup();
+        reload();
+    }
+    catch (err) {
+        logfailure(err);
+    }
 });
 
 var stashPopClassName = "stashPop";
 var jenkinsReloadableInfoClassName = "jenkinsReloadableInfo";
+
+function logfailure(err) {
+    log("ERROR - " + err);
+}
 
 function log(message)
 {
