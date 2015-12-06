@@ -18,6 +18,8 @@ Note: Added UI elements are visually optimized for users also running [Wide Gith
   - Opens Jenkins "details" links in a new tab
   - Adds "Create Issue" buttons to each Jenkins test failure (<a href="screenshots/createdissue.png" target="_blank">screenshot</a>)
   - Adds a "Retest" button to each Jenkins test failure
+  - Configurable list of non-default test buttons for discoverability
+  - Configurable issue filing location for failures in repositories without issues
 
 **To install:**
 
