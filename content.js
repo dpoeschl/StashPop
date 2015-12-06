@@ -35,8 +35,8 @@ function reload() {
     $('.' + stashPopClassName).remove();
 
     log("Adding Issue/PR buttons");
-    addIndividualIssueButton();
-    addButtonsToIssuesList();
+    addbuttonsToIndividualItemPage();
+    addButtonsToListPage();
 
     log("Fixing general Jenkins layout/usability");
     openJenkinsDetailsInNewTab();
@@ -61,7 +61,7 @@ function log(message) {
     console.log("StashPop: " + message);
 }
 
-function addIndividualIssueButton() {
+function addbuttonsToIndividualItemPage() {
     var urlParts = normalizeAndRemoveUrlParameters(window.location.href).split("/");
     var isPull = urlParts[urlParts.length - 2] == "pull";
 
@@ -506,7 +506,7 @@ function stripFragment(str) {
     return str.indexOf('#') >= 0 ? str.substring(0, str.indexOf('#')) : str;
 }
 
-function addButtonsToIssuesList() {
+function addButtonsToListPage() {
     var url = normalizeAndRemoveUrlParameters(window.location.href);
     var urlParts = url.split("/");
 
