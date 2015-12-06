@@ -31,26 +31,54 @@ function initialSetup() {
 }
 
 function reload() {
+    resetGlobals();
+
     log("Remove all StashPop elements and reload data");
     $('.' + stashPopClassName).remove();
 
-    log("Adding Issue/PR buttons");
-    addbuttonsToIndividualItemPage();
-    addButtonsToListPage();
+    if (isIndividualItemPage) {
+        var urlParts = normalizeAndRemoveUrlParameters(window.location.href).split("/");
+        var isPull = urlParts[urlParts.length - 2] == "pull";
 
-    log("Fixing general Jenkins layout/usability");
-    openJenkinsDetailsInNewTab();
-    makeBuildStatusWindowsBig();
+        addButtonsToIndividualItemPage(isPull);
+        openJenkinsDetailsInNewTab();
+        makeBuildStatusWindowsBig();
+    }
+
+    if (isListPage) {
+        var urlParts = normalizeAndRemoveUrlParameters(window.location.href).split("/");
+        var isPull = urlParts[urlParts.length - 1] == "pulls";
+
+        addButtonsToListPage(isPull);
+    }
 
     reloadJenkins();
 }
 
 function reloadJenkins() {
-    log("Reloading Jenkins run data");
+    log("Deleting inlined Jenkins data");
     $('.' + jenkinsReloadableInfoClassName).remove();
+
     addTestFailureButtonsAndDescriptions();
     addJenkinsTestRunTimes();
     addJenkinsRefreshButton();
+}
+
+var currentPageFullUrl;
+var isIndividualItemPage;
+var isListPage;
+
+function resetGlobals() {
+    log("Resetting globals:");
+
+    currentPageFullUrl = window.location.href;
+    log("currentPageFullUrl: " + currentPageFullUrl);
+
+    isIndividualItemPage = typeof document.getElementsByClassName("js-issue-title")[0] !== 'undefined';
+    log("isIndividualItemPage: " + isIndividualItemPage);
+
+    isListPage = typeof document.getElementsByClassName("table-list-issues")[0] !== 'undefined';
+    log("isListPage: " + isListPage);
 }
 
 function logfailure(err) {
@@ -61,10 +89,7 @@ function log(message) {
     console.log("StashPop: " + message);
 }
 
-function addbuttonsToIndividualItemPage() {
-    var urlParts = normalizeAndRemoveUrlParameters(window.location.href).split("/");
-    var isPull = urlParts[urlParts.length - 2] == "pull";
-
+function addButtonsToIndividualItemPage(isPull) {
     chrome.runtime.sendMessage({ method: "getSettings", keys: ["emailIssue", "emailPullRequest"] }, function (response) {
         var titleElement = document.getElementsByClassName("js-issue-title")[0]
         if (typeof titleElement !== 'undefined' && ((isPull && response.data["emailPullRequest"]) || (!isPull && response.data["emailIssue"]))) {
@@ -101,15 +126,7 @@ function addbuttonsToIndividualItemPage() {
     });
 }
 
-function addButtonsToListPage() {
-    var url = normalizeAndRemoveUrlParameters(window.location.href);
-    var urlParts = url.split("/");
-
-    var isPull = false;
-    if (urlParts[urlParts.length - 1] == "pulls") {
-        isPull = true;
-    }
-
+function addButtonsToListPage(isPull) {
     chrome.runtime.sendMessage({ method: "getSettings", keys: ["emailIssuesList", "emailPullRequestList"] }, function (response) {
         var issuesList = document.getElementsByClassName("table-list-issues")[0];
         if (typeof issuesList !== 'undefined' && ((isPull && response.data["emailPullRequestList"]) || (!isPull && response.data["emailIssuesList"]))) {
