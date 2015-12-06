@@ -235,11 +235,7 @@ function createButtonWithCallBack(title, callback)
     var button = document.createElement("input");
     button.setAttribute("type", "button");
     button.setAttribute("value", title);
-
-    button.onclick = (function () {
-        return callback;
-    })();
-
+    button.onclick = callback;
     return button;
 }
 
