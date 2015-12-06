@@ -59,7 +59,29 @@
         Show bug-filing button on failure
     </label>
     <br />
-    <br />
+    <label>
+        &nbsp;&nbsp;&nbsp;&nbsp;Issue creation routing:<br />
+        &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Examples:<br />
+        &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+            <i>OrganizationA/RepoWithoutIssues:OrganizationB/RepoWithIssues</i><br />
+        &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Configured routes:<br />      
+        &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<textarea id="issueCreationRouting" rows="5" cols="100"></textarea>
+    </label><br />
+    <label>
+        &nbsp;&nbsp;&nbsp;&nbsp;Non-default test suites:<br />
+        &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Examples:<br />
+        &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+            <i>OrganizationA:NonDefaultTestA</i><br />
+        &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+            <i>OrganizationB/SpecificRepo:NonDefaultTestB</i><br />
+        &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+            <i>OrganizationB/SpecificRepo:NonDefaultTestC</i><br />
+        &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+            <i>OrganizationC/SpecificRepo:NonDefaultTestD:TestNameThatIndicatesThisTestAlreadyRan</i><br />
+        &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Configured routes:<br />
+        &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<textarea id="nonDefaultTestInfo" rows="5" cols="100"></textarea>
+    </label>
+    <br /><br />
 
     <div id="status"></div>
     <button id="save">Save</button>

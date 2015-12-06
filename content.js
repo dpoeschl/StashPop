@@ -390,7 +390,7 @@ function addJenkinsTestRunTimes() {
 function addTestFailureButtonsAndDescriptions() {
     chrome.runtime.sendMessage({ method: "getSettings", keys: ["jenkinsShowBugFilingButton", "jenkinsShowFailureIndications", "jenkinsShowTestFailures"] }, function (response) {
         if (response.data["jenkinsShowBugFilingButton"] || response.data["jenkinsShowFailureIndications"]) {
-            processTestFailures(document, null, null, 0, function (x, y, z, w) { });
+            processTestFailures(document, null, 0, function (x, y, z, w) { });
         }
     });
 }
@@ -439,48 +439,101 @@ function processTestFailures(doc, prLoadingDiv, rowNumber, callbackWhenTestProce
         }
     }
 
-    var knownNonAutomaticJobs = [];
-    if (currentPageOrg == "dotnet" && currentPageRepo == "roslyn") {
-        knownNonAutomaticJobs["prtest/win/vsi/p0"] = "vsi";
-    }
+    if (!isListPage) {
+        chrome.runtime.sendMessage({ method: "getSettings", keys: ["nonDefaultTestInfo"] }, function (response) {
+            var nonDefaultTestInfo = response.data["nonDefaultTestInfo"];
+            var nonDefaultTests = nonDefaultTestInfo.trim().match(/[^\r\n]+/g);
 
-    if (knownNonAutomaticJobs.length > 0) {
-        var lists = $(".build-statuses-list");
-        for (var i = 0; i < lists.length; i++) {
-            var additionalJobsDiv = doc.createElement("div");
-            additionalJobsDiv.className = stashPopClassName + " " + jenkinsReloadableInfoClassName;
+            var relevantNonDefaultTests = new Array();
 
-            var t = document.createTextNode("Run non-default tests: ");
-            additionalJobsDiv.appendChild(t);
+            log("Calculating relevant non-default test suites...")
 
-            for (var j = 0; j < knownNonAutomaticJobs.length; j++) {
-                (function () {
-                    var jobName = knownNonAutomaticJobs[j];
-                    var jobButton = createButtonWithCallBack(
-                        jobName,
-                        function () {
-                            var commentText = "retest " + jobName + " please\n";
-                            $("#new_comment_field").val(commentText);
+            for (var i = 0; i < nonDefaultTests.length; i++) {
+                log("  Considering: " + nonDefaultTests[i])
 
-                            var offset = $("#new_comment_field").offset();
-                            offset.left -= 20;
-                            offset.top -= 20;
-                            $('html, body').animate({
-                                scrollTop: offset.top,
-                                scrollLeft: offset.left
-                            });
+                var specParts = nonDefaultTests[i].trim().split(":");
+                if (specParts.length == 2 || specParts.length == 3) {
+                    var scope = specParts[0].trim();
+                    var testToRun = specParts[1].trim();
+                    var runIfNotAlreadyRun = specParts.length == 3 ? specParts[2].trim() : testToRun;
 
-                            $("#new_comment_field").stop().css("background-color", "#FFFF9C")
-                                .animate({ backgroundColor: "#FFFFFF" }, 1500);
-                        });
-                    jobButton.className = "btn btn-sm";
-                    additionalJobsDiv.appendChild(jobButton);
-                })();
+                    var scopeParts = scope.trim().split("/");
+                    if (scopeParts.length == 1 || scopeParts.length == 2) {
+                        var orgToMatch = scopeParts[0].trim();
+                        if (orgToMatch == currentPageOrg) {
+                            var repoToMatch = scopeParts.length == 2 ? scopeParts[1].trim() : "";
+                            if (scopeParts.length == 1 || repoToMatch == currentPageRepo) {
+                                log("    It matches, adding mapping from " + runIfNotAlreadyRun + " to " + testToRun);
+                                relevantNonDefaultTests[runIfNotAlreadyRun] = testToRun;
+                            }
+                        }
+                    }
+                }
             }
 
-            var list = lists[i];
-            list.previousSibling.previousSibling.appendChild(additionalJobsDiv);
-        }
+            var nonDefaultTestCount = 0;
+            for (var key in relevantNonDefaultTests) {
+                nonDefaultTestCount++;
+            }
+
+            log("relevantNonDefaultTests length: " + nonDefaultTestCount);
+            log("Removing already-run tests...")
+
+            var buildStatusList = $(".build-statuses-list:visible")[0];
+
+            if (typeof buildStatusList !== "undefined") {
+                for (var i = 0; i < buildStatusList.children.length; i++) {
+                    var individualStatus = buildStatusList.children[i];
+                    var queueName = individualStatus.getElementsByTagName("strong")[0].innerText.trim();
+
+                    log("  Trying to delete: " + queueName);
+                    delete relevantNonDefaultTests[queueName];
+                }
+
+                nonDefaultTestCount = 0;
+                for (var key in relevantNonDefaultTests) {
+                    nonDefaultTestCount++;
+                }
+
+                log("Updated relevantNonDefaultTests length: " + nonDefaultTestCount);
+
+                if (nonDefaultTestCount > 0) {
+                    var additionalJobsDiv = doc.createElement("div");
+                    additionalJobsDiv.className = stashPopClassName + " " + jenkinsReloadableInfoClassName;
+
+                    var t = document.createTextNode("Run non-default tests: ");
+                    additionalJobsDiv.appendChild(t);
+
+                    for (var key in relevantNonDefaultTests) {
+                        var value = relevantNonDefaultTests[key];
+                        (function () {
+                            var jobName = value;
+                            var jobButton = createButtonWithCallBack(
+                                jobName,
+                                function () {
+                                    var commentText = "retest " + jobName + " please\n";
+                                    $("#new_comment_field").val(commentText);
+
+                                    var offset = $("#new_comment_field").offset();
+                                    offset.left -= 20;
+                                    offset.top -= 20;
+                                    $('html, body').animate({
+                                        scrollTop: offset.top,
+                                        scrollLeft: offset.left
+                                    });
+
+                                    $("#new_comment_field").stop().css("background-color", "#FFFF9C")
+                                        .animate({ backgroundColor: "#FFFFFF" }, 1500);
+                                });
+                            jobButton.className = "btn btn-sm";
+                            additionalJobsDiv.appendChild(jobButton);
+                        })();
+                    }
+
+                    buildStatusList.previousSibling.previousSibling.appendChild(additionalJobsDiv);
+                }
+            }
+        });
     }
 
     for (var i = 0; i < testFailures.length; i++) {

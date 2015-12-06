@@ -9,6 +9,8 @@ function save_options() {
     var jenkinsShowFailureIndications = document.getElementById('jenkinsShowFailureIndications').checked;
     var jenkinsShowTestFailures = document.getElementById('jenkinsShowTestFailures').checked;
     var jenkinsShowBugFilingButton = document.getElementById('jenkinsShowBugFilingButton').checked;
+    var issueCreationRouting = document.getElementById("issueCreationRouting").value;
+    var nonDefaultTestInfo = document.getElementById("nonDefaultTestInfo").value;
 
     chrome.storage.sync.set({
         emailIssuesList: emailIssuesList,
@@ -19,7 +21,9 @@ function save_options() {
         jenkinsShowRunTime: jenkinsShowRunTime,
         jenkinsShowFailureIndications: jenkinsShowFailureIndications,
         jenkinsShowTestFailures: jenkinsShowTestFailures,
-        jenkinsShowBugFilingButton: jenkinsShowBugFilingButton
+        jenkinsShowBugFilingButton: jenkinsShowBugFilingButton,
+        issueCreationRouting: issueCreationRouting,
+        nonDefaultTestInfo: nonDefaultTestInfo
     }, function () {
         // Update status to let user know options were saved.
         var status = document.getElementById('status');
@@ -40,7 +44,9 @@ function restore_options() {
         jenkinsShowRunTime: true,
         jenkinsShowFailureIndications: true,
         jenkinsShowTestFailures: true,
-        jenkinsShowBugFilingButton: true
+        jenkinsShowBugFilingButton: true,
+        issueCreationRouting: "dotnet/roslyn-internal:dotnet/roslyn",
+        nonDefaultTestInfo: "dotnet/roslyn:vsi:prtest/win/vsi/p0\ndotnet/roslyn-internal:vsi:prtest/win/vsi/p0"
     }, function (items) {
         document.getElementById('emailIssuesList').checked = items.emailIssuesList;
         document.getElementById('emailIssue').checked = items.emailIssue;
@@ -51,6 +57,8 @@ function restore_options() {
         document.getElementById('jenkinsShowFailureIndications').checked = items.jenkinsShowFailureIndications;
         document.getElementById('jenkinsShowTestFailures').checked = items.jenkinsShowTestFailures;
         document.getElementById('jenkinsShowBugFilingButton').checked = items.jenkinsShowBugFilingButton;
+        document.getElementById('issueCreationRouting').value = items.issueCreationRouting;
+        document.getElementById('nonDefaultTestInfo').value = items.nonDefaultTestInfo;
     });
 }
 document.addEventListener('DOMContentLoaded', restore_options);
