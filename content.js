@@ -40,7 +40,10 @@ function reload() {
         var urlParts = normalizeAndRemoveUrlParameters(window.location.href).split("/");
         var isPull = urlParts[urlParts.length - 2] == "pull";
 
-        addButtonsToIndividualItemPage(isPull);
+        var title = document.getElementsByClassName("js-issue-title")[0].innerHTML;
+        var number = document.getElementsByClassName("gh-header-number")[0].innerHTML.substring(1);
+
+        addButtonsToIndividualItemPage(title, number, isPull);
         openJenkinsDetailsInNewTab();
         makeBuildStatusWindowsBig();
     }
@@ -66,6 +69,7 @@ function reloadJenkins() {
 
 var currentPageFullUrl;
 var isIndividualItemPage;
+var individualItemPageTitleElement;
 var isListPage;
 
 function resetGlobals() {
@@ -74,7 +78,8 @@ function resetGlobals() {
     currentPageFullUrl = window.location.href;
     log("currentPageFullUrl: " + currentPageFullUrl);
 
-    isIndividualItemPage = typeof document.getElementsByClassName("js-issue-title")[0] !== 'undefined';
+    individualItemPageTitleElement = document.getElementsByClassName("js-issue-title")[0];
+    isIndividualItemPage = typeof individualItemPageTitleElement !== 'undefined';
     log("isIndividualItemPage: " + isIndividualItemPage);
 
     isListPage = typeof document.getElementsByClassName("table-list-issues")[0] !== 'undefined';
@@ -89,41 +94,31 @@ function log(message) {
     console.log("StashPop: " + message);
 }
 
-function addButtonsToIndividualItemPage(isPull) {
-    chrome.runtime.sendMessage({ method: "getSettings", keys: ["emailIssue", "emailPullRequest"] }, function (response) {
-        var titleElement = document.getElementsByClassName("js-issue-title")[0]
-        if (typeof titleElement !== 'undefined' && ((isPull && response.data["emailPullRequest"]) || (!isPull && response.data["emailIssue"]))) {
-            var div = document.createElement("div");
-            div.setAttribute("class", stashPopClassName);
+function addButtonsToIndividualItemPage(title, number, isPull) {
+    var buttonsContainer = document.createElement("div");
+    buttonsContainer.setAttribute("class", stashPopClassName);
 
-            var issueNumber = document.getElementsByClassName("gh-header-number")[0].innerHTML.substring(1);
-            var issueTitle = document.getElementsByClassName("js-issue-title")[0].innerHTML;
+    var emailButton = createButtonWithCallBack(
+        isPull ? "Email PR" : "Email Issue",
+        function () {
+            log("Email Item clicked");
+            sendmail(number, title, isPull);
+        });
 
-            button = createButtonWithCallBack(isPull ? "Email PR" : "Email Issue",
-                        function () {
-                            var currentTitle = issueTitle;
-                            var currentNumber = issueNumber;
-                            var currentIsPull = isPull;
-                            sendmail(currentNumber, currentTitle, currentIsPull);
-                        });
-            div.appendChild(button);
+    buttonsContainer.appendChild(emailButton);
 
-            if (!isPull)
-            {
-                var issueNumber = document.getElementsByClassName("gh-header-number")[0].innerHTML.substring(1);
-                var workItemPrefix = '<WorkItem(';
-                var workItemSuffix= '")>';
-                var workItemString = workItemPrefix + issueNumber + ', "' + window.location.href + workItemSuffix;
+    if (!isPull) {
+        var workItemButton = createButtonWithCallBack(
+            "Copy as WorkItem Attribute",
+            function () {
+                log("Copy as WorkItem Attribute clicked");
+                copyTextToClipboard('<WorkItem(' + number + ', "' + window.location.href + '")>');
+            });
 
-                var button3 = createButtonWithCallBack("Copy as WorkItem Attribute",
-                        function() { var copyable = workItemString;
-                        copyTextToClipboard(copyable);} )
-                div.appendChild(button3);
-            }
+        buttonsContainer.appendChild(workItemButton); 
+    }
             
-            titleElement.parentNode.appendChild(div);       
-        }
-    });
+    individualItemPageTitleElement.parentNode.appendChild(buttonsContainer);
 }
 
 function addButtonsToListPage(isPull) {
