@@ -1,3 +1,6 @@
+var stashPopClassName = "stashPop";
+var jenkinsReloadableInfoClassName = "jenkinsReloadableInfo";
+
 document.addEventListener("DOMContentLoaded", function () {
     "use strict";
     log("DOMContentLoaded");
@@ -9,18 +12,6 @@ document.addEventListener("DOMContentLoaded", function () {
         logfailure(err);
     }
 });
-
-var stashPopClassName = "stashPop";
-var jenkinsReloadableInfoClassName = "jenkinsReloadableInfo";
-
-function logfailure(err) {
-    log("ERROR - " + err);
-}
-
-function log(message)
-{
-    console.log("StashPop: " + message);
-}
 
 function initialSetup() {
     log("Performing initial setup");
@@ -60,6 +51,14 @@ function reloadJenkins() {
     addTestFailureButtonsAndDescriptions();
     addJenkinsTestRunTimes();
     addJenkinsRefreshButton();
+}
+
+function logfailure(err) {
+    log("ERROR - " + err);
+}
+
+function log(message) {
+    console.log("StashPop: " + message);
 }
 
 function addIndividualIssueButton() {
