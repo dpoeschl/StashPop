@@ -758,7 +758,7 @@ function processTestFailures(doc, prLoadingDiv, rowNumber, callbackWhenTestProce
                     var div = doc.createElement("div");
 
                     if (typeof htmlDescription === "undefined" || htmlDescription == "") {
-                        htmlDescription = "Unknown Failure - If this is a private Jenkins job, you may need to re-authenticate by clicking the 'Details' button.";
+                        htmlDescription = "Unknown Failure - If this is a private Jenkins job, click the 'Details' button to reauthenticate and then reload this failure data.";
                     }
 
                     div.innerHTML = htmlDescription.trim();
