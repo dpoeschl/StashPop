@@ -1,3 +1,4 @@
+// Constants
 var stashPopClassName = "stashPop";
 var jenkinsReloadableInfoClassName = "jenkinsReloadableInfo";
 
@@ -37,11 +38,11 @@ function reload(firstRun) {
     $('.' + stashPopClassName).remove();
 
     if (isIndividualItemPage) {
-        var urlParts = normalizeAndRemoveUrlParameters(window.location.href).split("/");
-        var isPull = urlParts[urlParts.length - 2] == "pull";
-
         var title = document.getElementsByClassName("js-issue-title")[0].innerHTML;
         var number = document.getElementsByClassName("gh-header-number")[0].innerHTML.substring(1);
+
+        // https://github.com/dotnet/roslyn/pull/5786
+        var isPull = postDomainUrlParts[2] == "pull";
 
         addButtonsToIndividualItemPage(title, number, isPull);
         openJenkinsDetailsInNewTab();
@@ -49,9 +50,9 @@ function reload(firstRun) {
     }
 
     if (isListPage) {
-        var urlParts = normalizeAndRemoveUrlParameters(window.location.href).split("/");
-        var isPull = urlParts[urlParts.length - 1] == "pulls";
-
+        // https://github.com/dotnet/roslyn/pulls/dpoeschl
+        // https://github.com/pulls
+        var isPull = postDomainUrlParts[2] == "pulls" || (currentPageOrg == null && postDomainUrlParts[0] == "pulls");
         addButtonsToListPage(isPull);
     }
 
@@ -69,7 +70,11 @@ function reloadJenkins(firstRun) {
     addJenkinsRefreshButton();
 }
 
+// Globals
 var currentPageFullUrl;
+var postDomainUrlParts;
+var currentPageOrg;
+var currentPageRepo;
 
 var isIndividualItemPage;
 var individualItemPageTitleElement;
@@ -78,22 +83,68 @@ var isListPage;
 var itemListElement;
 
 function resetGlobals() {
-    log("Resetting globals:");
+    log("Resetting globals");
+    log("Clearing old globals");
+
+    currentPageFullUrl = null;
+    postDomainUrlParts= null;
+    currentPageOrg= null;
+    currentPageRepo = null;
+    isIndividualItemPage = null;
+    individualItemPageTitleElement = null;
+    isListPage = null;
+    itemListElement = null;
+
+    log("Setting new globals");
 
     currentPageFullUrl = window.location.href;
     log("currentPageFullUrl: " + currentPageFullUrl);
 
-    individualItemPageTitleElement = document.getElementsByClassName("js-issue-title")[0];
-    isIndividualItemPage = typeof individualItemPageTitleElement !== 'undefined';
-    log("isIndividualItemPage: " + isIndividualItemPage);
+    var urlParts = normalizeAndRemoveUrlParameters(currentPageFullUrl).split("/");
+    var indexOfGitHubDotCom = -1;
+    for (var i = 0; i < urlParts.length; i++) {
+        if (urlParts[i].indexOf("github.com") > -1) {
+            indexOfGitHubDotCom = i;
+            break;
+        }
+    }
 
-    itemListElement = document.getElementsByClassName("table-list-issues")[0];
-    isListPage = typeof itemListElement !== 'undefined';
-    log("isListPage: " + isListPage);
+    if (indexOfGitHubDotCom > -1) {
+        postDomainUrlParts = urlParts.slice(indexOfGitHubDotCom + 1, urlParts.length);
+        log("postDomainUrlParts: " + postDomainUrlParts.toString());
+        var org = urlParts[indexOfGitHubDotCom + 1];
+        var repo = urlParts[indexOfGitHubDotCom + 2];
+        log("ASDF" + repo);
+        if (typeof org !== "undefined") {
+            if (org == "pulls") {
+                // Personal pulls page: github.com/pulls...
+                // Handled below, but don't treat "pulls" as the organization
+            } else {
+                // Organization sub-page: github.com/dotnet...
+                currentPageOrg = org;
+            }
+        }
+        log("currentPageOrg: " + currentPageOrg);
+
+        if (typeof repo !== "undefined") {
+            // Repository sub-page: github.com/dotnet/roslyn...
+            currentPageRepo = repo;
+        }
+        log("currentPageRepo: " + currentPageRepo);
+
+        individualItemPageTitleElement = document.getElementsByClassName("js-issue-title")[0];
+        isIndividualItemPage = typeof individualItemPageTitleElement !== 'undefined';
+        log("isIndividualItemPage: " + isIndividualItemPage);
+
+        itemListElement = document.getElementsByClassName("table-list-issues")[0];
+        isListPage = typeof itemListElement !== 'undefined';
+        log("isListPage: " + isListPage);
+    }
 }
 
 function logfailure(err) {
     log("ERROR - " + err);
+    log("ERROR STACK - " + err.stack);
 }
 
 function log(message) {
@@ -174,12 +225,28 @@ function addButtonsToListPage(isPull) {
                 log("Found a failure");
                 var titleElement = itemElement.getElementsByClassName("issue-title")[0];
                 var pullRequestElement = itemElement.getElementsByClassName("issue-title")[0];
-                var urlParts = pullRequestElement.getElementsByClassName("issue-title-link")[0].href.split("/");
-                var pullRequestNumber = urlParts[urlParts.length - 1];
+
+                // On github.com/pulls there are two "issue-title-link" elements. The first is for the repo, the second for the issue.
+                // Get the issue number, then add the repo qualifier if necessary.
+                var pullRequestUrlParts = pullRequestElement.getElementsByClassName("issue-title-link js-navigation-open")[0].href.split("/");
+                log("PR Request Parts: " + pullRequestUrlParts.toString());
+                var pullRequestNumber = pullRequestUrlParts[pullRequestUrlParts.length - 1];
+                log("In PR #" + pullRequestNumber);
+
+                var pullRequestRepo = "";
+                if (currentPageOrg == null) {
+                    var prOrg = pullRequestUrlParts[pullRequestUrlParts.length - 4];
+                    var prRepo = pullRequestUrlParts[pullRequestUrlParts.length - 3];
+                    pullRequestRepo = prOrg + "_ClassNameFriendlySeparator_" + prRepo;
+                    log("In Repo: " + pullRequestRepo);
+                }
+
+                var pullRequestIdentifier = pullRequestRepo + pullRequestNumber;
+                log("Failure identifier: " + pullRequestIdentifier);
 
                 var showJenkinsFailureLink = document.createElement("a");
                 showJenkinsFailureLink.href = "#";
-                var className = "loadjenkinsfailure" + pullRequestNumber;
+                var className = "loadjenkinsfailure" + pullRequestIdentifier;
                 showJenkinsFailureLink.className = stashPopClassName + " " + jenkinsReloadableInfoClassName + " " + className;
                 showJenkinsFailureLink.text = "Show Jenkins failure";
                 showJenkinsFailureLink.style.color = 'red';
@@ -526,7 +593,7 @@ function processTestFailures(doc, prLoadingDiv, rowNumber, callbackWhenTestProce
                     retestButton.setAttribute("value", "Retest");
                     retestButton.setAttribute("name", "buttonname");
                     retestButton.onclick = (function () {
-                        var thisUrl = url//;
+                        var thisUrl = url;
                         var thisJobName = jobName;
                         var thisPreviousFailureUrl = previousFailureUrl;
                         return function () {
@@ -642,7 +709,9 @@ function inlineFailureInfoToPRList(title, className, i) {
 
     log("Inlining Jenkins failures to PR list for " + className + " (position " + i + " on this page)");
 
-    var thisFailureUrl = title.getElementsByClassName("issue-title-link")[0].href;
+    // On github.com/pulls there are two "issue-title-link" elements.
+    var thisFailureUrl = title.getElementsByClassName("issue-title-link js-navigation-open")[0].href;
+    log("thisFailureUrl:" + thisFailureUrl);
 
     var redDiv = document.createElement("div");
     redDiv.style.backgroundColor = "#FFAAAA";
