@@ -679,58 +679,80 @@ function processTestFailures(doc, prLoadingDiv, rowNumber, callbackWhenTestProce
 
                 var testQueueName = _testFailure.parentNode.getElementsByClassName("text-emphasized")[0].innerText.trim();
                 var issueTitle = "[Test Failure] " + issueDescription + " in " + testQueueName + " on PR #" + pullNumber;
-                var previousFailureUrl = _testFailUrl;
 
-                var url = "https://github.com/dotnet/roslyn/issues/new?title=" + encodeURIComponent(issueTitle) + "&body=" + encodeURIComponent(issueBody) + "&labels[]=Area-Infrastructure&labels[]=Contributor%20Pain";
-                var jobName = testQueueName;
+                // DO SETTINGS STUFF
 
-                if (true) {
-                    var retestButton = doc.createElement("input");
-                    retestButton.setAttribute("type", "button");
-                    retestButton.setAttribute("value", "Retest");
-                    retestButton.setAttribute("name", "buttonname");
-                    retestButton.onclick = (function () {
-                        var thisUrl = url;
-                        var thisJobName = jobName;
-                        var thisPreviousFailureUrl = previousFailureUrl;
-                        return function () {
-                            var commentText = "retest " + thisJobName + " please\n// Previous failure: " + thisPreviousFailureUrl + "\n// Retest reason: ";
-                            $("#new_comment_field").val(commentText);
+                chrome.runtime.sendMessage({ method: "getSettings", keys: ["issueCreationRouting"] }, function (response) {
+                    var issueCreationRouting = response.data["issueCreationRouting"];
+                    var issueRoutes = issueCreationRouting.trim().match(/[^\r\n]+/g);
 
-                            var offset = $("#new_comment_field").offset();
-                            offset.left -= 20;
-                            offset.top -= 20;
-                            $('html, body').animate({
-                                scrollTop: offset.top,
-                                scrollLeft: offset.left
-                            });
+                    var targetOrg = currentPageOrg;
+                    var targetRepo = currentPageRepo;
 
-                            $("#new_comment_field").stop().css("background-color", "#FFFF9C")
-                                .animate({ backgroundColor: "#FFFFFF" }, 1500);
-                        };
-                    })();
+                    for (var routeNum = 0; routeNum < issueRoutes.length; routeNum++) {
+                        var routeParts = issueRoutes[routeNum].trim().split(":");
+                        var fromParts = routeParts[0].trim().split("/");
+                        var toParts = routeParts[1].trim().split("/");
 
-                    retestButton.className = "btn btn-sm " + stashPopClassName + " " + jenkinsReloadableInfoClassName;
-                    retestButton.style.margin = "0px 0px 3px 0px";
+                        if (fromParts.length == 2 && toParts.length == 2 && fromParts[0].trim() == currentPageOrg && fromParts[1].trim() == currentPageRepo) {
+                            targetOrg = toParts[0].trim();
+                            targetRepo = toParts[1].trim();
+                            break;
+                        }
+                    }
 
-                    _testFailure.parentNode.insertBefore(retestButton, _testFailure.parentNode.firstChild);
+                    var previousFailureUrl = _testFailUrl;
+                    var url = "https://github.com/" + targetOrg + "/" + targetRepo + "/issues/new?title=" + encodeURIComponent(issueTitle) + "&body=" + encodeURIComponent(issueBody) + "&labels[]=Area-Infrastructure&labels[]=Contributor%20Pain";
+                    var jobName = testQueueName;
 
-                    var button = doc.createElement("input");
-                    button.setAttribute("type", "button");
-                    button.setAttribute("value", "Create Issue");
-                    button.setAttribute("name", "buttonname");
-                    button.onclick = (function () {
-                        var thisUrl = url;
-                        return function () {
-                            window.open(thisUrl);
-                        };
-                    })();
+                    if (true) {
+                        var retestButton = doc.createElement("input");
+                        retestButton.setAttribute("type", "button");
+                        retestButton.setAttribute("value", "Retest");
+                        retestButton.setAttribute("name", "buttonname");
+                        retestButton.onclick = (function () {
+                            var thisUrl = url;
+                            var thisJobName = jobName;
+                            var thisPreviousFailureUrl = previousFailureUrl;
+                            return function () {
+                                var commentText = "retest " + thisJobName + " please\n// Previous failure: " + thisPreviousFailureUrl + "\n// Retest reason: ";
+                                $("#new_comment_field").val(commentText);
 
-                    button.className = "btn btn-sm " + stashPopClassName + " " + jenkinsReloadableInfoClassName;
-                    button.style.margin = "0px 0px 3px 0px";
+                                var offset = $("#new_comment_field").offset();
+                                offset.left -= 20;
+                                offset.top -= 20;
+                                $('html, body').animate({
+                                    scrollTop: offset.top,
+                                    scrollLeft: offset.left
+                                });
 
-                    _testFailure.parentNode.insertBefore(button, _testFailure.parentNode.firstChild);
-                }
+                                $("#new_comment_field").stop().css("background-color", "#FFFF9C")
+                                    .animate({ backgroundColor: "#FFFFFF" }, 1500);
+                            };
+                        })();
+
+                        retestButton.className = "btn btn-sm " + stashPopClassName + " " + jenkinsReloadableInfoClassName;
+                        retestButton.style.margin = "0px 0px 3px 0px";
+
+                        _testFailure.parentNode.insertBefore(retestButton, _testFailure.parentNode.firstChild);
+
+                        var button = doc.createElement("input");
+                        button.setAttribute("type", "button");
+                        button.setAttribute("value", "Create Issue");
+                        button.setAttribute("name", "buttonname");
+                        button.onclick = (function () {
+                            var thisUrl = url;
+                            return function () {
+                                window.open(thisUrl);
+                            };
+                        })();
+
+                        button.className = "btn btn-sm " + stashPopClassName + " " + jenkinsReloadableInfoClassName;
+                        button.style.margin = "0px 0px 3px 0px";
+
+                        _testFailure.parentNode.insertBefore(button, _testFailure.parentNode.firstChild);
+                    }
+                });
 
                 if (true) {
                     var div = doc.createElement("div");
