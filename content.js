@@ -6,7 +6,7 @@ document.addEventListener("DOMContentLoaded", function () {
     log("DOMContentLoaded");
     try {
         initialSetup();
-        reload();
+        reload(true);
     }
     catch (err) {
         logfailure(err);
@@ -26,11 +26,11 @@ function initialSetup() {
 
     document.addEventListener('_pjax:end', function () {
         log("Detected page data changed.");
-        reload();
+        reload(false);
     }, false);
 }
 
-function reload() {
+function reload(firstRun) {
     resetGlobals();
 
     log("Remove all StashPop elements and reload data");
@@ -55,12 +55,14 @@ function reload() {
         addButtonsToListPage(isPull);
     }
 
-    reloadJenkins();
+    reloadJenkins(firstRun);
 }
 
-function reloadJenkins() {
-    log("Deleting inlined Jenkins data");
-    //$('.' + jenkinsReloadableInfoClassName).remove();
+function reloadJenkins(firstRun) {
+    if (!firstRun) {
+        log("Deleting inlined Jenkins data");
+        $('.' + jenkinsReloadableInfoClassName).remove();
+    }
 
     addTestFailureButtonsAndDescriptions();
     addJenkinsTestRunTimes();
@@ -161,7 +163,6 @@ function addButtonsToListPage(isPull) {
     }
 
     if (isPull) {
-        var failureCount = 0;
         var failureTitles = new Array()
         var failureClassNames = new Array();
         var failureIndices = new Array();
@@ -188,7 +189,6 @@ function addButtonsToListPage(isPull) {
 
                 titleElement.appendChild(showJenkinsFailureLink);
 
-                failureCount = failureCount + 1;
                 failureTitles.push(titleElement);
                 failureClassNames.push(className);
                 failureIndices.push(i);
@@ -209,7 +209,7 @@ function addButtonsToListPage(isPull) {
             }
         }
 
-        if (failureCount >= 1) {
+        if (failureTitles.length >= 1) {
             var headerStates = document.getElementsByClassName("table-list-header-toggle states")[0];
 
             var loadAllFailuresLink = document.createElement("a");
@@ -640,7 +640,7 @@ function inlineFailureInfoToPRList(title, className, i) {
 
     $("." + className).remove();
 
-    log("Inlining Jenkins failure to PR list for " + className + "(position " + i + " on this page)");
+    log("Inlining Jenkins failures to PR list for " + className + " (position " + i + " on this page)");
 
     var thisFailureUrl = title.getElementsByClassName("issue-title-link")[0].href;
 
@@ -656,7 +656,7 @@ function inlineFailureInfoToPRList(title, className, i) {
     prLoadingDiv.style.backgroundColor = "#FFAAAA";
     prLoadingDiv.style.color = "#000000";
     prLoadingDiv.appendChild(loading);
-    var t = document.createTextNode("Loading PR contents...");     // Create a text node
+    var t = document.createTextNode("Loading PR contents...");
     prLoadingDiv.appendChild(t);
     var specificClassName = stashPopClassName + "_LoadPRContents_" + i;
     prLoadingDiv.className = specificClassName;
