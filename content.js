@@ -101,6 +101,123 @@ function addbuttonsToIndividualItemPage() {
     });
 }
 
+function addButtonsToListPage() {
+    var url = normalizeAndRemoveUrlParameters(window.location.href);
+    var urlParts = url.split("/");
+
+    var isPull = false;
+    if (urlParts[urlParts.length - 1] == "pulls") {
+        isPull = true;
+    }
+
+    chrome.runtime.sendMessage({ method: "getSettings", keys: ["emailIssuesList", "emailPullRequestList"] }, function (response) {
+        var issuesList = document.getElementsByClassName("table-list-issues")[0];
+        if (typeof issuesList !== 'undefined' && ((isPull && response.data["emailPullRequestList"]) || (!isPull && response.data["emailIssuesList"]))) {
+            var issues = issuesList.children;
+
+            var number = document.getElementsByClassName("js-check-all-count")[0];
+            if (typeof number !== "undefined") {
+                var buttonAll = document.createElement("input");
+                buttonAll.setAttribute("type", "button");
+                buttonAll.setAttribute("value", "Email Selected " + (isPull ? "PRs" : "Issues"));
+                buttonAll.setAttribute("name", "buttonname");
+                buttonAll.onclick = (function () {
+                    return function () {
+                        sendmultimail(issuesList, isPull);
+                    };
+                })();
+                buttonAll.className = "btn btn-sm";
+
+                number.parentNode.insertBefore(buttonAll, number.parentNode.firstChild);
+            }
+
+            var jenkinsFailureCount = 0;
+            var failureTitles = new Array()
+            var failureClassNames = new Array();
+            var failureIndices = new Array();
+
+            for (var i = 0; i < issues.length; i++) {
+                var issue = issues[i];
+                var title = issue.getElementsByClassName("issue-title")[0];
+                var button = document.createElement("input");
+                button.setAttribute("type", "button");
+                button.setAttribute("value", isPull ? "Email PR" : "Email Issue");
+                button.setAttribute("name", "buttonname");
+
+                var urlParts = title.getElementsByClassName("issue-title-link")[0].href.split("/");
+                var issueNumber = urlParts[urlParts.length - 1];
+                var issueTitle = title.getElementsByClassName("issue-title-link")[0].innerHTML;
+
+                if (typeof issue.getElementsByClassName("octicon-x")[0] !== "undefined") {
+                    // Failure
+
+                    var title = issue.getElementsByClassName("issue-title")[0];
+
+                    var a = document.createElement("a");
+                    a.href = "#";
+                    var className = "loadjenkinsfailure" + issueNumber;
+                    a.className = stashPopClassName + " " + jenkinsReloadableInfoClassName + " " + className;
+                    a.text = "Show Jenkins failure";
+                    a.style.color = 'red';
+                    title.appendChild(a);
+
+                    jenkinsFailureCount = jenkinsFailureCount + 1;
+                    failureTitles.push(title);
+                    failureClassNames.push(className);
+                    failureIndices.push(i);
+
+                    (function (_title, _className, _i) {
+                        $('.' + _className).click(function (e) {
+                            e.preventDefault();
+                            log("Click - Load Jenkins Failure for #" + _className.substring("loadjenkinsfailure".length));
+                            inlineFailureInfoToPRList(_title, _className, _i);
+                        });
+                    })(title, className, i);
+                }
+
+                button.onclick = (function () {
+                    var currentTitle = issueTitle;
+                    var currentNumber = issueNumber;
+                    return function () {
+                        sendmail(currentNumber, currentTitle, isPull);
+                    };
+                })();
+                button.className = "btn btn-sm " + stashPopClassName;
+
+                title.insertBefore(button, title.firstChild);
+            }
+
+            if (jenkinsFailureCount >= 1) {
+                var headerStates = document.getElementsByClassName("table-list-header-toggle states")[0];
+
+                var a = document.createElement("a");
+                a.href = "#";
+                a.className = stashPopClassName + " " + jenkinsReloadableInfoClassName + " loadalljenkinsfailures";
+                a.text = "Show all Jenkins failures";
+                a.style.color = 'red';
+                title.appendChild(a);
+
+                headerStates.appendChild(a);
+
+                (function (_failureTitles, _failureClassNames, _failureIndices) {
+                    $('.loadalljenkinsfailures').click(function (e) {
+                        e.preventDefault();
+                        log("Click - Load All Jenkins Failures")
+
+                        for (var i = 0; i < _failureTitles.length; i++) {
+                            var failureTitle = _failureTitles[i];
+                            var failureClassName = _failureClassNames[i];
+                            var failureIndex = _failureIndices[i];
+
+                            inlineFailureInfoToPRList(failureTitle, failureClassName, failureIndex);
+                        }
+                    });
+                })(failureTitles, failureClassNames, failureIndices);
+            }
+        }
+    });
+}
+
 function createButtonWithCallBack(title, callback)
 {
     var button = document.createElement("input");
@@ -504,123 +621,6 @@ function stripQueryString(str) {
 
 function stripFragment(str) {
     return str.indexOf('#') >= 0 ? str.substring(0, str.indexOf('#')) : str;
-}
-
-function addButtonsToListPage() {
-    var url = normalizeAndRemoveUrlParameters(window.location.href);
-    var urlParts = url.split("/");
-
-    var isPull = false;
-    if (urlParts[urlParts.length - 1] == "pulls") {
-      isPull = true;
-    }
-
-    chrome.runtime.sendMessage({ method: "getSettings", keys: ["emailIssuesList", "emailPullRequestList"] }, function (response) {
-        var issuesList = document.getElementsByClassName("table-list-issues")[0];
-        if (typeof issuesList !== 'undefined' && ((isPull && response.data["emailPullRequestList"]) || (!isPull && response.data["emailIssuesList"]))) {
-            var issues = issuesList.children;
-
-            var number = document.getElementsByClassName("js-check-all-count")[0];
-            if (typeof number !== "undefined") {
-                var buttonAll = document.createElement("input");
-                buttonAll.setAttribute("type", "button");
-                buttonAll.setAttribute("value", "Email Selected " + (isPull ? "PRs" : "Issues"));
-                buttonAll.setAttribute("name", "buttonname");
-                buttonAll.onclick = (function () {
-                    return function () {
-                        sendmultimail(issuesList, isPull);
-                    };
-                })();
-                buttonAll.className = "btn btn-sm";
-
-                number.parentNode.insertBefore(buttonAll, number.parentNode.firstChild);
-            }
-
-            var jenkinsFailureCount = 0;
-            var failureTitles = new Array()
-            var failureClassNames = new Array();
-            var failureIndices = new Array();
-
-            for (var i = 0; i < issues.length; i++) {
-                var issue = issues[i];
-                var title = issue.getElementsByClassName("issue-title")[0];
-                var button = document.createElement("input");
-                button.setAttribute("type", "button");
-                button.setAttribute("value", isPull ? "Email PR" : "Email Issue");
-                button.setAttribute("name", "buttonname");
-
-                var urlParts = title.getElementsByClassName("issue-title-link")[0].href.split("/");
-                var issueNumber = urlParts[urlParts.length - 1];
-                var issueTitle = title.getElementsByClassName("issue-title-link")[0].innerHTML;
-
-                if (typeof issue.getElementsByClassName("octicon-x")[0] !== "undefined") {
-                    // Failure
-
-                    var title = issue.getElementsByClassName("issue-title")[0];
-
-                    var a = document.createElement("a");
-                    a.href = "#";
-                    var className = "loadjenkinsfailure" + issueNumber;
-                    a.className = stashPopClassName + " " + jenkinsReloadableInfoClassName + " " + className;
-                    a.text = "Show Jenkins failure";
-                    a.style.color = 'red';
-                    title.appendChild(a);
-
-                    jenkinsFailureCount = jenkinsFailureCount + 1;
-                    failureTitles.push(title);
-                    failureClassNames.push(className);
-                    failureIndices.push(i);
-
-                    (function (_title, _className, _i) {
-                        $('.' + _className).click(function (e) {
-                            e.preventDefault();
-                            log("Click - Load Jenkins Failure for #" + _className.substring("loadjenkinsfailure".length));
-                            inlineFailureInfoToPRList(_title, _className, _i);
-                        });
-                    })(title, className, i);
-                }
-
-                button.onclick = (function () {
-                    var currentTitle = issueTitle;
-                    var currentNumber = issueNumber;
-                    return function () {
-                        sendmail(currentNumber, currentTitle, isPull);
-                    };
-                })();
-                button.className = "btn btn-sm " + stashPopClassName;
-
-                title.insertBefore(button, title.firstChild);
-            }
-
-            if (jenkinsFailureCount >= 1) {
-                var headerStates = document.getElementsByClassName("table-list-header-toggle states")[0];
-
-                var a = document.createElement("a");
-                a.href = "#";
-                a.className = stashPopClassName + " " + jenkinsReloadableInfoClassName + " loadalljenkinsfailures";
-                a.text = "Show all Jenkins failures";
-                a.style.color = 'red';
-                title.appendChild(a);
-
-                headerStates.appendChild(a);
-
-                (function (_failureTitles, _failureClassNames, _failureIndices) {
-                    $('.loadalljenkinsfailures').click(function (e) {
-                        e.preventDefault();
-                        log("Click - Load All Jenkins Failures")
-
-                        for (var i = 0; i < _failureTitles.length; i++) {
-                            var failureTitle = _failureTitles[i];
-                            var failureClassName = _failureClassNames[i];
-                            var failureIndex = _failureIndices[i];
-
-                            inlineFailureInfoToPRList(failureTitle, failureClassName, failureIndex);
-                        }
-                    });
-                })(failureTitles, failureClassNames, failureIndices);
-            }
-        }
-    });
 }
 
 function inlineFailureInfoToPRList(title, className, i) {
