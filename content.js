@@ -580,13 +580,14 @@ function processTestFailures(doc, prLoadingDiv, rowNumber, callbackWhenTestProce
                 var urlParts = url.split("/");
                 var pullNumber = urlParts[urlParts.length - 1];
                 var pullTitle = "";
-                if (typeof doc.getElementsByClassName("js-issue-title")[0] !== "undefined") {
-                    pullTitle = doc.getElementsByClassName("js-issue-title")[0].innerText.trim();
+
+                if (typeof document.getElementsByClassName("js-issue-title")[0] !== "undefined") {
+                    pullTitle = document.getElementsByClassName("js-issue-title")[0].innerText.trim();
                 }
 
                 var pullAuthor = "";
-                if (typeof doc.getElementsByClassName("pull-header-username")[0] !== "undefined") {
-                    pullAuthor = doc.getElementsByClassName("pull-header-username")[0].innerText.trim();
+                if (typeof document.getElementsByClassName("pull-header-username")[0] !== "undefined") {
+                    pullAuthor = document.getElementsByClassName("pull-header-username")[0].innerText.trim();
                 }
 
                 var issueBody = "PR: [#" + pullNumber + "](" + url + ") *" + pullTitle + "* by @" + pullAuthor + "\r\n";
