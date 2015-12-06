@@ -33,6 +33,8 @@
   "storage",
   "https://ajax.googleapis.com/",
   "https://github.com/*",
-  "http://dotnet-ci.cloudapp.net/*"
+  "http://dotnet-ci.cloudapp.net/*",
+  "http://ci.roslyn.io/",
+  "https://ci.roslyn.io/"
   ]
 }
