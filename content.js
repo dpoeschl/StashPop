@@ -439,6 +439,50 @@ function processTestFailures(doc, prLoadingDiv, rowNumber, callbackWhenTestProce
         }
     }
 
+    var knownNonAutomaticJobs = [];
+    if (currentPageOrg == "dotnet" && currentPageRepo == "roslyn") {
+        knownNonAutomaticJobs["prtest/win/vsi/p0"] = "vsi";
+    }
+
+    if (knownNonAutomaticJobs.length > 0) {
+        var lists = $(".build-statuses-list");
+        for (var i = 0; i < lists.length; i++) {
+            var additionalJobsDiv = doc.createElement("div");
+            additionalJobsDiv.className = stashPopClassName + " " + jenkinsReloadableInfoClassName;
+
+            var t = document.createTextNode("Run non-default tests: ");
+            additionalJobsDiv.appendChild(t);
+
+            for (var j = 0; j < knownNonAutomaticJobs.length; j++) {
+                (function () {
+                    var jobName = knownNonAutomaticJobs[j];
+                    var jobButton = createButtonWithCallBack(
+                        jobName,
+                        function () {
+                            var commentText = "retest " + jobName + " please\n";
+                            $("#new_comment_field").val(commentText);
+
+                            var offset = $("#new_comment_field").offset();
+                            offset.left -= 20;
+                            offset.top -= 20;
+                            $('html, body').animate({
+                                scrollTop: offset.top,
+                                scrollLeft: offset.left
+                            });
+
+                            $("#new_comment_field").stop().css("background-color", "#FFFF9C")
+                                .animate({ backgroundColor: "#FFFFFF" }, 1500);
+                        });
+                    jobButton.className = "btn btn-sm";
+                    additionalJobsDiv.appendChild(jobButton);
+                })();
+            }
+
+            var list = lists[i];
+            list.previousSibling.previousSibling.appendChild(additionalJobsDiv);
+        }
+    }
+
     for (var i = 0; i < testFailures.length; i++) {
         var isDropdown = false;
 

@@ -1,66 +1,69 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <title>StashPop Options</title>
-  <style>
-    body: { padding: 10px; }
-  </style>
+    <title>StashPop Options</title>
+    <style>
+        body: {
+            padding: 10px;
+        }
+    </style>
 </head>
 
 <body>
-  <b>Email Options</b><br />
-  <label>
-    &nbsp;&nbsp;&nbsp;&nbsp;<input type="checkbox" id="emailIssuesList">
-    Issues list
-  </label>
-  <br />
-  <label>
-    &nbsp;&nbsp;&nbsp;&nbsp;<input type="checkbox" id="emailIssue">
-    Individual issue
-  </label>
-  <br />
-  <label>
-    &nbsp;&nbsp;&nbsp;&nbsp;<input type="checkbox" id="emailPullRequestList">
-    Pull request list
-  </label>
-  <br />
-  <label>
-    &nbsp;&nbsp;&nbsp;&nbsp;<input type="checkbox" id="emailPullRequest">
-    Individual pull request
-  </label>
-  
-  <br /><br />
+    <b>Email Options</b><br />
+    <label>
+        &nbsp;&nbsp;&nbsp;&nbsp;<input type="checkbox" id="emailIssuesList">
+        Issues list
+    </label>
+    <br />
+    <label>
+        &nbsp;&nbsp;&nbsp;&nbsp;<input type="checkbox" id="emailIssue">
+        Individual issue
+    </label>
+    <br />
+    <label>
+        &nbsp;&nbsp;&nbsp;&nbsp;<input type="checkbox" id="emailPullRequestList">
+        Pull request list
+    </label>
+    <br />
+    <label>
+        &nbsp;&nbsp;&nbsp;&nbsp;<input type="checkbox" id="emailPullRequest">
+        Individual pull request
+    </label>
 
-  <b>Jenkins Options</b><br />
-  <label>
-    &nbsp;&nbsp;&nbsp;&nbsp;<input type="checkbox" id="jenkinsOpenDetailsLinksInNewTab">
-    Open "details" links in a new tab
-  </label>
-  <br />
-  <label>
-    &nbsp;&nbsp;&nbsp;&nbsp;<input type="checkbox" id="jenkinsShowRunTime">
-    Show run time
-  </label>
-  <br />
-  <label>
-    &nbsp;&nbsp;&nbsp;&nbsp;<input type="checkbox" id="jenkinsShowFailureIndications">
-    Show failure indications
-  </label>
-  <br />
-  <label>
-    &nbsp;&nbsp;&nbsp;&nbsp;<input type="checkbox" id="jenkinsShowTestFailures">
-    Show test failures
-  </label>
-  <br />
-  <label>
-    &nbsp;&nbsp;&nbsp;&nbsp;<input type="checkbox" id="jenkinsShowBugFilingButton">
-    Show bug-filing button on failure
-  </label>
-  <br /><br />
+    <br /><br />
 
-  <div id="status"></div>
-  <button id="save">Save</button>
+    <b>Jenkins Options</b><br />
+    <label>
+        &nbsp;&nbsp;&nbsp;&nbsp;<input type="checkbox" id="jenkinsOpenDetailsLinksInNewTab">
+        Open "details" links in a new tab
+    </label>
+    <br />
+    <label>
+        &nbsp;&nbsp;&nbsp;&nbsp;<input type="checkbox" id="jenkinsShowRunTime">
+        Show run time
+    </label>
+    <br />
+    <label>
+        &nbsp;&nbsp;&nbsp;&nbsp;<input type="checkbox" id="jenkinsShowFailureIndications">
+        Show failure indications
+    </label>
+    <br />
+    <label>
+        &nbsp;&nbsp;&nbsp;&nbsp;<input type="checkbox" id="jenkinsShowTestFailures">
+        Show test failures
+    </label>
+    <br />
+    <label>
+        &nbsp;&nbsp;&nbsp;&nbsp;<input type="checkbox" id="jenkinsShowBugFilingButton">
+        Show bug-filing button on failure
+    </label>
+    <br />
+    <br />
 
-  <script src="options.js"></script>
+    <div id="status"></div>
+    <button id="save">Save</button>
+
+    <script src="options.js"></script>
 </body>
 </html>
