@@ -978,7 +978,17 @@ function sendmail(issueNumber, issueTitle, isPull) {
     var owner = document.getElementsByClassName("entry-title")[0].getElementsByClassName("author")[0].getElementsByTagName("span")[0].innerHTML;
     var repo = document.getElementsByClassName("entry-title")[0].getElementsByTagName("strong")[0].getElementsByTagName("a")[0].innerHTML;
 
-    var subject = owner + "/" + repo + " " + kind + " #" + issueNumber + ": " + issueTitle;
+    var targetFullBranchSpecParts = $(".current-branch").first().text().split(":");
+    var targetBranch = targetFullBranchSpecParts.length == 1 ? targetFullBranchSpecParts[0] : targetFullBranchSpecParts[1];
+
+    log("PR target branch: " + targetBranch);
+
+    var targetBranchDisplay = "";
+    if (targetBranch != "master") {
+        targetBranchDisplay = "/" + targetBranch;
+    }
+
+    var subject = owner + "/" + repo + targetBranchDisplay + " " + kind + " #" + issueNumber + ": " + issueTitle;
 
     var body = baseUrl + issueNumber + "\r\n\r\n"; // TODO: Assigned to, etc.
     var isPublic = (typeof document.getElementsByClassName("entry-title private")[0] === "undefined");
