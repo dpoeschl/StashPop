@@ -17,6 +17,7 @@ Note: Added UI elements are visually optimized for users also running [Wide Gith
   - Shows how long ago a Jenkins build ran (<a href="screenshots/jenkinsresults.png" target="_blank">screenshot</a>)
   - Opens Jenkins "details" links in a new tab
   - Adds "Create Issue" buttons to each Jenkins test failure (<a href="screenshots/createdissue.png" target="_blank">screenshot</a>)
+      - Default labels on created issues are customizable per-organization and per-repository
   - Adds a "Retest" button to each Jenkins test failure
   - Configurable list of non-default test buttons for discoverability
   - Configurable issue filing location for failures in repositories without issues
