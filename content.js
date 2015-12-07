@@ -172,6 +172,7 @@ function addButtonsToIndividualItemPage(title, number, isPull) {
                 copyTextToClipboard('<WorkItem(' + number + ', "' + window.location.href + '")>');
             });
 
+        workItemButton.style.margin = "0px 0px 0px 4px";
         buttonsContainer.appendChild(workItemButton); 
     }
             
