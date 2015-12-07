@@ -58,7 +58,7 @@
         &nbsp;&nbsp;&nbsp;&nbsp;<input type="checkbox" id="jenkinsShowBugFilingButton">
         Show bug-filing button on failure
     </label>
-    <br />
+    <br /><br />
     <label>
         &nbsp;&nbsp;&nbsp;&nbsp;Issue creation routing:<br />
         &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Examples:<br />
@@ -66,7 +66,8 @@
             <i>OrganizationA/RepoWithoutIssues:OrganizationB/RepoWithIssues</i><br />
         &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Configured routes:<br />      
         &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<textarea id="issueCreationRouting" rows="5" cols="100"></textarea>
-    </label><br />
+    </label>
+    <br /><br />
     <label>
         &nbsp;&nbsp;&nbsp;&nbsp;Non-default test suites:<br />
         &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Examples:<br />
@@ -80,6 +81,17 @@
             <i>OrganizationC/SpecificRepo:NonDefaultTestD:TestNameThatIndicatesThisTestAlreadyRan</i><br />
         &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Configured routes:<br />
         &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<textarea id="nonDefaultTestInfo" rows="5" cols="100"></textarea>
+    </label>
+    <br /><br />
+    <label>
+        &nbsp;&nbsp;&nbsp;&nbsp;Default labels when creating issues<br />
+        &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Examples:<br />
+        &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+        <i>OrganizationA:DefaultLabel1</i><br />
+        &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+        <i>OrganizationB/SpecificRepo:DefaultLabel1,DefaultLabel2</i><br />
+        &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Configured routes:<br />
+        &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<textarea id="defaultIssueLabels" rows="5" cols="100"></textarea>
     </label>
     <br /><br />
 

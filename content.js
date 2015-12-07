@@ -704,10 +704,50 @@ function processTestFailures(doc, prLoadingDiv, rowNumber, callbackWhenTestProce
                     }
 
                     var previousFailureUrl = _testFailUrl;
-                    var url = "https://github.com/" + targetOrg + "/" + targetRepo + "/issues/new?title=" + encodeURIComponent(issueTitle) + "&body=" + encodeURIComponent(issueBody) + "&labels[]=Area-Infrastructure&labels[]=Contributor%20Pain";
-                    var jobName = testQueueName;
 
-                    if (true) {
+                    chrome.runtime.sendMessage({ method: "getSettings", keys: ["defaultIssueLabels"] }, function (response) {
+                        var defaultIssueLabelsSpecs = response.data["defaultIssueLabels"].trim().match((/[^\r\n]+/g));
+
+                        log("Determining issue labels...")
+
+                        var labelsToUse = new Array();
+                        for (var specNum = 0; specNum < defaultIssueLabelsSpecs.length; specNum++) {
+                            log("  Checking: " + defaultIssueLabelsSpecs[specNum]);
+                            var specParts = defaultIssueLabelsSpecs[specNum].trim().split(":");
+                            var scopeParts = specParts[0].split("/");
+
+                            var organization = scopeParts[0].trim();
+                            if (organization == currentPageOrg) {
+                                if (scopeParts.length == 1 || scopeParts[1].trim() == currentPageRepo) {
+                                    var labelList = specParts[1].trim().split(",");
+                                    log("    Matches. Adding " + labelList.toString());
+                                    
+                                    for (var labelNum = 0; labelNum < labelList.length; labelNum++) {
+                                        labelName = labelList[labelNum].trim();
+                                        if (!(labelName in labelsToUse)) {
+                                            log("      Actually adding: " + labelName);
+                                            labelsToUse.push(labelName);
+                                        }
+                                    }
+                                }
+                            }
+                        }
+
+                        log("Calculated labelsToUse: " + labelsToUse);
+
+                        // "&labels[]=Area-Infrastructure&labels[]=Contributor%20Pain"
+                        var labelUrlPart = "";
+                        if (labelsToUse.length > 0) {
+                            for (var labelNum = 0; labelNum < labelsToUse.length; labelNum++) {
+                                labelUrlPart = labelUrlPart + "&labels[]=" + labelsToUse[labelNum];
+                            }
+                        }
+
+                        log("Constructed labels url part: " + labelUrlPart);
+
+                        var url = "https://github.com/" + targetOrg + "/" + targetRepo + "/issues/new?title=" + encodeURIComponent(issueTitle) + "&body=" + encodeURIComponent(issueBody) + labelUrlPart;
+                        var jobName = testQueueName;
+
                         var retestButton = doc.createElement("input");
                         retestButton.setAttribute("type", "button");
                         retestButton.setAttribute("value", "Retest");
@@ -751,9 +791,8 @@ function processTestFailures(doc, prLoadingDiv, rowNumber, callbackWhenTestProce
 
                         button.className = "btn btn-sm " + stashPopClassName + " " + jenkinsReloadableInfoClassName;
                         button.style.margin = "0px 0px 3px 0px";
-
                         _testFailure.parentNode.insertBefore(button, _testFailure.parentNode.firstChild);
-                    }
+                    });
                 });
 
                 if (true) {

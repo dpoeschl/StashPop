@@ -11,6 +11,7 @@ function save_options() {
     var jenkinsShowBugFilingButton = document.getElementById('jenkinsShowBugFilingButton').checked;
     var issueCreationRouting = document.getElementById("issueCreationRouting").value;
     var nonDefaultTestInfo = document.getElementById("nonDefaultTestInfo").value;
+    var defaultIssueLabels = document.getElementById("defaultIssueLabels").value;
 
     chrome.storage.sync.set({
         emailIssuesList: emailIssuesList,
@@ -23,7 +24,8 @@ function save_options() {
         jenkinsShowTestFailures: jenkinsShowTestFailures,
         jenkinsShowBugFilingButton: jenkinsShowBugFilingButton,
         issueCreationRouting: issueCreationRouting,
-        nonDefaultTestInfo: nonDefaultTestInfo
+        nonDefaultTestInfo: nonDefaultTestInfo,
+        defaultIssueLabels: defaultIssueLabels
     }, function () {
         // Update status to let user know options were saved.
         var status = document.getElementById('status');
@@ -46,7 +48,8 @@ function restore_options() {
         jenkinsShowTestFailures: true,
         jenkinsShowBugFilingButton: true,
         issueCreationRouting: "dotnet/roslyn-internal:dotnet/roslyn",
-        nonDefaultTestInfo: "dotnet/roslyn:vsi:prtest/win/vsi/p0\ndotnet/roslyn-internal:vsi:prtest/win/vsi/p0"
+        nonDefaultTestInfo: "dotnet/roslyn:vsi:prtest/win/vsi/p0\ndotnet/roslyn-internal:vsi:prtest/win/vsi/p0",
+        defaultIssueLabels: "dotnet:Bug\ndotnet/roslyn-internal:Contributor Pain,Area-Infrastructure"
     }, function (items) {
         document.getElementById('emailIssuesList').checked = items.emailIssuesList;
         document.getElementById('emailIssue').checked = items.emailIssue;
@@ -59,8 +62,8 @@ function restore_options() {
         document.getElementById('jenkinsShowBugFilingButton').checked = items.jenkinsShowBugFilingButton;
         document.getElementById('issueCreationRouting').value = items.issueCreationRouting;
         document.getElementById('nonDefaultTestInfo').value = items.nonDefaultTestInfo;
+        document.getElementById('defaultIssueLabels').value = items.defaultIssueLabels;
     });
 }
 document.addEventListener('DOMContentLoaded', restore_options);
-document.getElementById('save').addEventListener('click',
-    save_options);
+document.getElementById('save').addEventListener('click', save_options);
