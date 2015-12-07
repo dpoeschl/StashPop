@@ -788,7 +788,7 @@ function processTestFailures(doc,
                             var thisJobName = jobName;
                             var thisPreviousFailureUrl = previousFailureUrl;
                             return function () {
-                                var commentText = "retest " + thisJobName + " please\n// Previous failure: " + thisPreviousFailureUrl + "\n// Retest reason: ";
+                                var commentText = "@dotnet-bot retest " + thisJobName + " please\n// Previous failure: " + thisPreviousFailureUrl + "\n// Retest reason: ";
                                 $("#new_comment_field").val(commentText);
 
                                 var offset = $("#new_comment_field").offset();
