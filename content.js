@@ -219,91 +219,92 @@ function addButtonsToListPage(isPull) {
                     titleElement.insertBefore(emailButton, titleElement.firstChild);
                 })();
             }
-
-            if (isPull) {
-                var failureTitles = new Array()
-                var failureClassNames = new Array();
-                var failureIndices = new Array();
-
-                for (var i = 0; i < itemListElement.children.length; i++) {
-                    var itemElement = itemListElement.children[i];
-                    if (typeof itemElement.getElementsByClassName("octicon-x")[0] !== "undefined") {
-                        // PR with failures
-                        log("Found a failure");
-                        var titleElement = itemElement.getElementsByClassName("issue-title")[0];
-                        var pullRequestElement = itemElement.getElementsByClassName("issue-title")[0];
-
-                        // On github.com/pulls there are two "issue-title-link" elements. The first is for the repo, the second for the issue.
-                        // Get the issue number, then add the repo qualifier if necessary.
-                        var pullRequestUrlParts = pullRequestElement.getElementsByClassName("issue-title-link js-navigation-open")[0].href.split("/");
-                        log("PR Request Parts: " + pullRequestUrlParts.toString());
-                        var pullRequestNumber = pullRequestUrlParts[pullRequestUrlParts.length - 1];
-                        log("In PR #" + pullRequestNumber);
-
-                        var pullRequestRepo = "";
-                        if (currentPageOrg == null) {
-                            var prOrg = pullRequestUrlParts[pullRequestUrlParts.length - 4];
-                            var prRepo = pullRequestUrlParts[pullRequestUrlParts.length - 3];
-                            pullRequestRepo = prOrg + "_ClassNameFriendlySeparator_" + prRepo;
-                            log("In Repo: " + pullRequestRepo);
-                        }
-
-                        var pullRequestIdentifier = pullRequestRepo + pullRequestNumber;
-                        log("Failure identifier: " + pullRequestIdentifier);
-
-                        var showJenkinsFailureLink = document.createElement("a");
-                        showJenkinsFailureLink.href = "#";
-                        var className = "loadjenkinsfailure" + pullRequestIdentifier;
-                        showJenkinsFailureLink.className = stashPopClassName + " " + jenkinsReloadableInfoClassName + " " + className;
-                        showJenkinsFailureLink.text = "Show Jenkins failure";
-                        showJenkinsFailureLink.style.color = 'red';
-
-                        log("titleElement:" + titleElement);
-                        log("showJenkinsFailureLink:" + showJenkinsFailureLink);
-
-                        titleElement.appendChild(showJenkinsFailureLink);
-
-                        failureTitles.push(titleElement);
-                        failureClassNames.push(className);
-                        failureIndices.push(i);
-
-                        (function () {
-                            var _titleElement = titleElement;
-                            var _className = className;
-                            var _i = i;
-
-                            log("Hooking up click event for class " + _className);
-
-                            $('.' + _className).click(function (e) {
-                                e.preventDefault();
-                                log("Click - Load Jenkins Failure for #" + _className.substring("loadjenkinsfailure".length));
-                                inlineFailureInfoToPRList(_titleElement, _className, _i);
-                            });
-                        })();
-                    }
-                }
-
-                if (failureTitles.length >= 1) {
-                    var headerStates = document.getElementsByClassName("table-list-header-toggle states")[0];
-
-                    var loadAllFailuresLink = document.createElement("a");
-                    loadAllFailuresLink.href = "#";
-                    loadAllFailuresLink.className = stashPopClassName + " " + jenkinsReloadableInfoClassName + " loadalljenkinsfailures";
-                    loadAllFailuresLink.text = "Show all Jenkins failures";
-                    loadAllFailuresLink.style.color = 'red';
-                    headerStates.appendChild(loadAllFailuresLink);
-
-                    $('.loadalljenkinsfailures').click(function (e) {
-                        log("Click - Load All Jenkins Failures")
-                        e.preventDefault();
-                        for (var i = 0; i < failureTitles.length; i++) {
-                            inlineFailureInfoToPRList(failureTitles[i], failureClassNames[i], failureIndices[i]);
-                        }
-                    });
-                }
-            }
         }
     });
+
+    if (isPull) {
+        log("Handling failures in PR list");
+        var failureTitles = new Array()
+        var failureClassNames = new Array();
+        var failureIndices = new Array();
+
+        for (var i = 0; i < itemListElement.children.length; i++) {
+            var itemElement = itemListElement.children[i];
+            if (typeof itemElement.getElementsByClassName("octicon-x")[0] !== "undefined") {
+                // PR with failures
+                log("Found a failure");
+                var titleElement = itemElement.getElementsByClassName("issue-title")[0];
+                var pullRequestElement = itemElement.getElementsByClassName("issue-title")[0];
+
+                // On github.com/pulls there are two "issue-title-link" elements. The first is for the repo, the second for the issue.
+                // Get the issue number, then add the repo qualifier if necessary.
+                var pullRequestUrlParts = pullRequestElement.getElementsByClassName("issue-title-link js-navigation-open")[0].href.split("/");
+                log("PR Request Parts: " + pullRequestUrlParts.toString());
+                var pullRequestNumber = pullRequestUrlParts[pullRequestUrlParts.length - 1];
+                log("In PR #" + pullRequestNumber);
+
+                var pullRequestRepo = "";
+                if (currentPageOrg == null) {
+                    var prOrg = pullRequestUrlParts[pullRequestUrlParts.length - 4];
+                    var prRepo = pullRequestUrlParts[pullRequestUrlParts.length - 3];
+                    pullRequestRepo = prOrg + "_ClassNameFriendlySeparator_" + prRepo;
+                    log("In Repo: " + pullRequestRepo);
+                }
+
+                var pullRequestIdentifier = pullRequestRepo + pullRequestNumber;
+                log("Failure identifier: " + pullRequestIdentifier);
+
+                var showJenkinsFailureLink = document.createElement("a");
+                showJenkinsFailureLink.href = "#";
+                var className = "loadjenkinsfailure" + pullRequestIdentifier;
+                showJenkinsFailureLink.className = stashPopClassName + " " + jenkinsReloadableInfoClassName + " " + className;
+                showJenkinsFailureLink.text = "Show Jenkins failure";
+                showJenkinsFailureLink.style.color = 'red';
+
+                log("titleElement:" + titleElement);
+                log("showJenkinsFailureLink:" + showJenkinsFailureLink);
+
+                titleElement.appendChild(showJenkinsFailureLink);
+
+                failureTitles.push(titleElement);
+                failureClassNames.push(className);
+                failureIndices.push(i);
+
+                (function () {
+                    var _titleElement = titleElement;
+                    var _className = className;
+                    var _i = i;
+
+                    log("Hooking up click event for class " + _className);
+
+                    $('.' + _className).click(function (e) {
+                        e.preventDefault();
+                        log("Click - Load Jenkins Failure for #" + _className.substring("loadjenkinsfailure".length));
+                        inlineFailureInfoToPRList(_titleElement, _className, _i);
+                    });
+                })();
+            }
+        }
+
+        if (failureTitles.length >= 1) {
+            var headerStates = document.getElementsByClassName("table-list-header-toggle states")[0];
+
+            var loadAllFailuresLink = document.createElement("a");
+            loadAllFailuresLink.href = "#";
+            loadAllFailuresLink.className = stashPopClassName + " " + jenkinsReloadableInfoClassName + " loadalljenkinsfailures";
+            loadAllFailuresLink.text = "Show all Jenkins failures";
+            loadAllFailuresLink.style.color = 'red';
+            headerStates.appendChild(loadAllFailuresLink);
+
+            $('.loadalljenkinsfailures').click(function (e) {
+                log("Click - Load All Jenkins Failures")
+                e.preventDefault();
+                for (var i = 0; i < failureTitles.length; i++) {
+                    inlineFailureInfoToPRList(failureTitles[i], failureClassNames[i], failureIndices[i]);
+                }
+            });
+        }
+    }
 }
 
 function createButtonWithCallBack(title, callback)
