@@ -152,150 +152,158 @@ function log(message) {
 }
 
 function addButtonsToIndividualItemPage(title, number, isPull) {
-    var buttonsContainer = document.createElement("div");
-    buttonsContainer.setAttribute("class", stashPopClassName);
+    chrome.runtime.sendMessage({ method: "getSettings", keys: ["emailIssue", "emailPullRequest"] }, function (response) {
+        if ((isPull && response.data["emailPullRequest"]) || (!isPull && response.data["emailIssue"])) {
+            var buttonsContainer = document.createElement("div");
+            buttonsContainer.setAttribute("class", stashPopClassName);
 
-    var emailButton = createButtonWithCallBack(
-        isPull ? "Email PR" : "Email Issue",
-        function () {
-            log("Email Item clicked");
-            sendmail(number, title, isPull);
-        });
-
-    buttonsContainer.appendChild(emailButton);
-
-    if (!isPull) {
-        var workItemButton = createButtonWithCallBack(
-            "Copy as WorkItem Attribute",
-            function () {
-                log("Copy as WorkItem Attribute clicked");
-                copyTextToClipboard('<WorkItem(' + number + ', "' + window.location.href + '")>');
-            });
-
-        workItemButton.style.margin = "0px 0px 0px 4px";
-        buttonsContainer.appendChild(workItemButton); 
-    }
-            
-    individualItemPageTitleElement.parentNode.appendChild(buttonsContainer);
-}
-
-function addButtonsToListPage(isPull) {
-    var numberOfCheckedItemsElement = document.getElementsByClassName("js-check-all-count")[0];
-    if (typeof numberOfCheckedItemsElement !== "undefined") {
-        var buttonAll = createButtonWithCallBack(
-            "Email Selected " + (isPull ? "PRs" : "Issues"),
-            function () {
-                log("Email Selected Items clicked");
-                sendmultimail(itemListElement, isPull);
-            });
-        buttonAll.className = "btn btn-sm";
-        numberOfCheckedItemsElement.parentNode.insertBefore(buttonAll, numberOfCheckedItemsElement.parentNode.firstChild);
-    }
-
-    for (var i = 0; i < itemListElement.children.length; i++) {
-        var itemElement = itemListElement.children[i];
-        var titleElement = itemElement.getElementsByClassName("issue-title")[0];
-
-        var urlParts = titleElement.getElementsByClassName("issue-title-link")[0].href.split("/");
-        var issueNumber = urlParts[urlParts.length - 1];
-        var issueTitle = titleElement.getElementsByClassName("issue-title-link")[0].innerHTML;
-
-        (function () {
-            var _issueNumber = issueNumber;
-            var _issueTitle = issueTitle;
             var emailButton = createButtonWithCallBack(
                 isPull ? "Email PR" : "Email Issue",
                 function () {
                     log("Email Item clicked");
-                    sendmail(_issueNumber, _issueTitle, isPull);
+                    sendmail(number, title, isPull);
                 });
-            emailButton.className = "btn btn-sm " + stashPopClassName;
-            titleElement.insertBefore(emailButton, titleElement.firstChild);
-        })();
-    }
 
-    if (isPull) {
-        var failureTitles = new Array()
-        var failureClassNames = new Array();
-        var failureIndices = new Array();
+            buttonsContainer.appendChild(emailButton);
 
-        for (var i = 0; i < itemListElement.children.length; i++) {
-            var itemElement = itemListElement.children[i];
-            if (typeof itemElement.getElementsByClassName("octicon-x")[0] !== "undefined") {
-                // PR with failures
-                log("Found a failure");
-                var titleElement = itemElement.getElementsByClassName("issue-title")[0];
-                var pullRequestElement = itemElement.getElementsByClassName("issue-title")[0];
-
-                // On github.com/pulls there are two "issue-title-link" elements. The first is for the repo, the second for the issue.
-                // Get the issue number, then add the repo qualifier if necessary.
-                var pullRequestUrlParts = pullRequestElement.getElementsByClassName("issue-title-link js-navigation-open")[0].href.split("/");
-                log("PR Request Parts: " + pullRequestUrlParts.toString());
-                var pullRequestNumber = pullRequestUrlParts[pullRequestUrlParts.length - 1];
-                log("In PR #" + pullRequestNumber);
-
-                var pullRequestRepo = "";
-                if (currentPageOrg == null) {
-                    var prOrg = pullRequestUrlParts[pullRequestUrlParts.length - 4];
-                    var prRepo = pullRequestUrlParts[pullRequestUrlParts.length - 3];
-                    pullRequestRepo = prOrg + "_ClassNameFriendlySeparator_" + prRepo;
-                    log("In Repo: " + pullRequestRepo);
-                }
-
-                var pullRequestIdentifier = pullRequestRepo + pullRequestNumber;
-                log("Failure identifier: " + pullRequestIdentifier);
-
-                var showJenkinsFailureLink = document.createElement("a");
-                showJenkinsFailureLink.href = "#";
-                var className = "loadjenkinsfailure" + pullRequestIdentifier;
-                showJenkinsFailureLink.className = stashPopClassName + " " + jenkinsReloadableInfoClassName + " " + className;
-                showJenkinsFailureLink.text = "Show Jenkins failure";
-                showJenkinsFailureLink.style.color = 'red';
-
-                log("titleElement:" + titleElement);
-                log("showJenkinsFailureLink:" + showJenkinsFailureLink);
-
-                titleElement.appendChild(showJenkinsFailureLink);
-
-                failureTitles.push(titleElement);
-                failureClassNames.push(className);
-                failureIndices.push(i);
-
-                (function() {
-                    var _titleElement = titleElement;
-                    var _className = className;
-                    var _i = i;
-
-                    log("Hooking up click event for class " + _className);
-
-                    $('.' + _className).click(function (e) {
-                        e.preventDefault();
-                        log("Click - Load Jenkins Failure for #" + _className.substring("loadjenkinsfailure".length));
-                        inlineFailureInfoToPRList(_titleElement, _className, _i);
+            if (!isPull) {
+                var workItemButton = createButtonWithCallBack(
+                    "Copy as WorkItem Attribute",
+                    function () {
+                        log("Copy as WorkItem Attribute clicked");
+                        copyTextToClipboard('<WorkItem(' + number + ', "' + window.location.href + '")>');
                     });
+
+                workItemButton.style.margin = "0px 0px 0px 4px";
+                buttonsContainer.appendChild(workItemButton);
+            }
+
+            individualItemPageTitleElement.parentNode.appendChild(buttonsContainer);
+        }
+    });
+}
+
+function addButtonsToListPage(isPull) {
+    chrome.runtime.sendMessage({ method: "getSettings", keys: ["emailIssuesList", "emailPullRequestList"] }, function (response) {
+        if ((isPull && response.data["emailPullRequestList"]) || (!isPull && response.data["emailIssuesList"])) {
+            var numberOfCheckedItemsElement = document.getElementsByClassName("js-check-all-count")[0];
+            if (typeof numberOfCheckedItemsElement !== "undefined") {
+                var buttonAll = createButtonWithCallBack(
+                    "Email Selected " + (isPull ? "PRs" : "Issues"),
+                    function () {
+                        log("Email Selected Items clicked");
+                        sendmultimail(itemListElement, isPull);
+                    });
+                buttonAll.className = "btn btn-sm";
+                numberOfCheckedItemsElement.parentNode.insertBefore(buttonAll, numberOfCheckedItemsElement.parentNode.firstChild);
+            }
+
+            for (var i = 0; i < itemListElement.children.length; i++) {
+                var itemElement = itemListElement.children[i];
+                var titleElement = itemElement.getElementsByClassName("issue-title")[0];
+
+                var urlParts = titleElement.getElementsByClassName("issue-title-link")[0].href.split("/");
+                var issueNumber = urlParts[urlParts.length - 1];
+                var issueTitle = titleElement.getElementsByClassName("issue-title-link")[0].innerHTML;
+
+                (function () {
+                    var _issueNumber = issueNumber;
+                    var _issueTitle = issueTitle;
+                    var emailButton = createButtonWithCallBack(
+                        isPull ? "Email PR" : "Email Issue",
+                        function () {
+                            log("Email Item clicked");
+                            sendmail(_issueNumber, _issueTitle, isPull);
+                        });
+                    emailButton.className = "btn btn-sm " + stashPopClassName;
+                    titleElement.insertBefore(emailButton, titleElement.firstChild);
                 })();
             }
-        }
 
-        if (failureTitles.length >= 1) {
-            var headerStates = document.getElementsByClassName("table-list-header-toggle states")[0];
+            if (isPull) {
+                var failureTitles = new Array()
+                var failureClassNames = new Array();
+                var failureIndices = new Array();
 
-            var loadAllFailuresLink = document.createElement("a");
-            loadAllFailuresLink.href = "#";
-            loadAllFailuresLink.className = stashPopClassName + " " + jenkinsReloadableInfoClassName + " loadalljenkinsfailures";
-            loadAllFailuresLink.text = "Show all Jenkins failures";
-            loadAllFailuresLink.style.color = 'red';
-            headerStates.appendChild(loadAllFailuresLink);
+                for (var i = 0; i < itemListElement.children.length; i++) {
+                    var itemElement = itemListElement.children[i];
+                    if (typeof itemElement.getElementsByClassName("octicon-x")[0] !== "undefined") {
+                        // PR with failures
+                        log("Found a failure");
+                        var titleElement = itemElement.getElementsByClassName("issue-title")[0];
+                        var pullRequestElement = itemElement.getElementsByClassName("issue-title")[0];
 
-            $('.loadalljenkinsfailures').click(function (e) {
-                log("Click - Load All Jenkins Failures")
-                e.preventDefault();
-                for (var i = 0; i < failureTitles.length; i++) {
-                    inlineFailureInfoToPRList(failureTitles[i], failureClassNames[i], failureIndices[i]);
+                        // On github.com/pulls there are two "issue-title-link" elements. The first is for the repo, the second for the issue.
+                        // Get the issue number, then add the repo qualifier if necessary.
+                        var pullRequestUrlParts = pullRequestElement.getElementsByClassName("issue-title-link js-navigation-open")[0].href.split("/");
+                        log("PR Request Parts: " + pullRequestUrlParts.toString());
+                        var pullRequestNumber = pullRequestUrlParts[pullRequestUrlParts.length - 1];
+                        log("In PR #" + pullRequestNumber);
+
+                        var pullRequestRepo = "";
+                        if (currentPageOrg == null) {
+                            var prOrg = pullRequestUrlParts[pullRequestUrlParts.length - 4];
+                            var prRepo = pullRequestUrlParts[pullRequestUrlParts.length - 3];
+                            pullRequestRepo = prOrg + "_ClassNameFriendlySeparator_" + prRepo;
+                            log("In Repo: " + pullRequestRepo);
+                        }
+
+                        var pullRequestIdentifier = pullRequestRepo + pullRequestNumber;
+                        log("Failure identifier: " + pullRequestIdentifier);
+
+                        var showJenkinsFailureLink = document.createElement("a");
+                        showJenkinsFailureLink.href = "#";
+                        var className = "loadjenkinsfailure" + pullRequestIdentifier;
+                        showJenkinsFailureLink.className = stashPopClassName + " " + jenkinsReloadableInfoClassName + " " + className;
+                        showJenkinsFailureLink.text = "Show Jenkins failure";
+                        showJenkinsFailureLink.style.color = 'red';
+
+                        log("titleElement:" + titleElement);
+                        log("showJenkinsFailureLink:" + showJenkinsFailureLink);
+
+                        titleElement.appendChild(showJenkinsFailureLink);
+
+                        failureTitles.push(titleElement);
+                        failureClassNames.push(className);
+                        failureIndices.push(i);
+
+                        (function () {
+                            var _titleElement = titleElement;
+                            var _className = className;
+                            var _i = i;
+
+                            log("Hooking up click event for class " + _className);
+
+                            $('.' + _className).click(function (e) {
+                                e.preventDefault();
+                                log("Click - Load Jenkins Failure for #" + _className.substring("loadjenkinsfailure".length));
+                                inlineFailureInfoToPRList(_titleElement, _className, _i);
+                            });
+                        })();
+                    }
                 }
-            });
+
+                if (failureTitles.length >= 1) {
+                    var headerStates = document.getElementsByClassName("table-list-header-toggle states")[0];
+
+                    var loadAllFailuresLink = document.createElement("a");
+                    loadAllFailuresLink.href = "#";
+                    loadAllFailuresLink.className = stashPopClassName + " " + jenkinsReloadableInfoClassName + " loadalljenkinsfailures";
+                    loadAllFailuresLink.text = "Show all Jenkins failures";
+                    loadAllFailuresLink.style.color = 'red';
+                    headerStates.appendChild(loadAllFailuresLink);
+
+                    $('.loadalljenkinsfailures').click(function (e) {
+                        log("Click - Load All Jenkins Failures")
+                        e.preventDefault();
+                        for (var i = 0; i < failureTitles.length; i++) {
+                            inlineFailureInfoToPRList(failureTitles[i], failureClassNames[i], failureIndices[i]);
+                        }
+                    });
+                }
+            }
         }
-    }
+    });
 }
 
 function createButtonWithCallBack(title, callback)
