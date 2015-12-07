@@ -398,14 +398,30 @@ function addJenkinsTestRunTimes() {
 }
 
 function addTestFailureButtonsAndDescriptions() {
-    chrome.runtime.sendMessage({ method: "getSettings", keys: ["jenkinsShowBugFilingButton", "jenkinsShowFailureIndications", "jenkinsShowTestFailures"] }, function (response) {
+    chrome.runtime.sendMessage({ method: "getSettings", keys: ["jenkinsShowBugFilingButton", "jenkinsShowFailureIndications", "jenkinsShowTestFailures", "jenkinsShowRetestButton"] }, function (response) {
         if (response.data["jenkinsShowBugFilingButton"] || response.data["jenkinsShowFailureIndications"]) {
-            processTestFailures(document, null, 0, function (x, y, z, w) { });
+            processTestFailures(
+                document,
+                null,
+                0,
+                response.data["jenkinsShowBugFilingButton"],
+                response.data["jenkinsShowFailureIndications"],
+                response.data["jenkinsShowTestFailures"],
+                response.data["jenkinsShowRetestButton"],
+                function (x, y, z, w) { });
         }
     });
 }
 
-function processTestFailures(doc, prLoadingDiv, rowNumber, callbackWhenTestProcessed) {
+function processTestFailures(doc,
+                             prLoadingDiv,
+                             rowNumber,
+                             jenkinsShowBugFilingButton,
+                             jenkinsShowFailureIndications,
+                             jenkinsShowTestFailures,
+                             jenkinsShowRetestButton,
+                             callbackWhenTestProcessed) {
+
     var testFailures = doc.getElementsByClassName("octicon-x build-status-icon");
 
     if (typeof prLoadingDiv !== "undefined" && prLoadingDiv !== null) {
@@ -605,7 +621,7 @@ function processTestFailures(doc, prLoadingDiv, rowNumber, callbackWhenTestProce
                 var htmlDescription = "";
                 var issueDescription = "<description>";
 
-                if (true) {
+                if (jenkinsShowFailureIndications) {
                     for (var i = 0; i < aelements.length; i++) {
                         var aelement = aelements[i];
                         if (aelement.innerText == "Test Result" && aelement.parentNode.tagName == "TD") {
@@ -632,66 +648,66 @@ function processTestFailures(doc, prLoadingDiv, rowNumber, callbackWhenTestProce
                             issueBody = issueBody + "\r\n";
                         }
                     }
-                }
 
-                var count = 1;
-                for (var i = 0; i < h2elements.length; i++) {
-                    var h2 = h2elements[i];
+                    if (jenkinsShowTestFailures) {
+                        var count = 1;
+                        for (var i = 0; i < h2elements.length; i++) {
+                            var h2 = h2elements[i];
 
-                    if (h2.innerHTML == "HTTP ERROR 404") {
-                        htmlDescription = htmlDescription + "404: Build details page could not be found.";
-                        issueDescription = "404: Build details page could not be found.";
-                    }
-
-                    if (h2.innerHTML == "Identified problems") {
-                        var nodeWithErrorSiblings = h2.parentNode.parentNode;
-                        var errorRow = nodeWithErrorSiblings;
-                        while ((errorRow = errorRow.nextSibling) != null) {
-                            if (count > 1) {
-                                issueBody = issueBody + "\r\n\r\n";
-                                htmlDescription = htmlDescription + "<br /><br />";
+                            if (h2.innerHTML == "HTTP ERROR 404") {
+                                htmlDescription = htmlDescription + "404: Build details page could not be found.";
+                                issueDescription = "404: Build details page could not be found.";
                             }
 
-                            var failureTitle = "";
-                            var failureDescription = "";
+                            if (h2.innerHTML == "Identified problems") {
+                                var nodeWithErrorSiblings = h2.parentNode.parentNode;
+                                var errorRow = nodeWithErrorSiblings;
+                                while ((errorRow = errorRow.nextSibling) != null) {
+                                    if (count > 1) {
+                                        issueBody = issueBody + "\r\n\r\n";
+                                        htmlDescription = htmlDescription + "<br /><br />";
+                                    }
 
-                            var h3s = errorRow.getElementsByTagName("h3");
-                            var h4s = errorRow.getElementsByTagName("h4");
-                            if (h3s.length > 0) {
-                                failureTitle = h3s[0].innerHTML.split("<br")[0].trim();
-                                failureDescription = h3s[0].getElementsByTagName("b")[0].innerHTML.trim();
+                                    var failureTitle = "";
+                                    var failureDescription = "";
+
+                                    var h3s = errorRow.getElementsByTagName("h3");
+                                    var h4s = errorRow.getElementsByTagName("h4");
+                                    if (h3s.length > 0) {
+                                        failureTitle = h3s[0].innerHTML.split("<br")[0].trim();
+                                        failureDescription = h3s[0].getElementsByTagName("b")[0].innerHTML.trim();
+                                    }
+                                    else if (h4s.length > 0) {
+                                        failureTitle = h4s[0].innerHTML.trim();
+                                        failureDescription = h4s[1].innerHTML.trim();
+                                    }
+
+                                    if (count == 1) {
+                                        issueDescription = failureTitle;
+                                    }
+
+                                    issueBody = issueBody + "**Issue " + count + ": " + failureTitle + "**\r\n";
+                                    issueBody = issueBody + failureDescription;
+                                    htmlDescription = htmlDescription + "<b>Issue " + count + ": " + failureTitle + "</b><br />" + failureDescription;
+
+                                    count++;
+                                }
                             }
-                            else if (h4s.length > 0) {
-                                failureTitle = h4s[0].innerHTML.trim();
-                                failureDescription = h4s[1].innerHTML.trim();
-                            }
+                        }
 
-                            if (count == 1) {
-                                issueDescription = failureTitle;
-                            }
+                        if (count > 2) {
+                            issueDescription = issueDescription + " (+" + (count - 2) + " more)";
+                        }
 
-                            issueBody = issueBody + "**Issue " + count + ": " + failureTitle + "**\r\n";
-                            issueBody = issueBody + failureDescription;
-                            htmlDescription = htmlDescription + "<b>Issue " + count + ": " + failureTitle + "</b><br />" + failureDescription;
-
-                            count++;
+                        if (count == 1) {
+                            // we failed to find the failure, or there was none.
+                            // should we add special handling here?
                         }
                     }
                 }
 
-                if (count > 2) {
-                    issueDescription = issueDescription + " (+" + (count - 2) + " more)";
-                }
-
-                if (count == 1) {
-                    // we failed to find the failure, or there was none.
-                    // should we add special handling here?
-                }
-
                 var testQueueName = _testFailure.parentNode.getElementsByClassName("text-emphasized")[0].innerText.trim();
                 var issueTitle = "[Test Failure] " + issueDescription + " in " + testQueueName + " on PR #" + pullNumber;
-
-                // DO SETTINGS STUFF
 
                 chrome.runtime.sendMessage({ method: "getSettings", keys: ["issueCreationRouting"] }, function (response) {
                     var issueCreationRouting = response.data["issueCreationRouting"];
@@ -785,7 +801,9 @@ function processTestFailures(doc, prLoadingDiv, rowNumber, callbackWhenTestProce
                         retestButton.className = "btn btn-sm " + stashPopClassName + " " + jenkinsReloadableInfoClassName;
                         retestButton.style.margin = "0px 0px 3px 0px";
 
-                        _testFailure.parentNode.insertBefore(retestButton, _testFailure.parentNode.firstChild);
+                        if (jenkinsShowRetestButton) {
+                            _testFailure.parentNode.insertBefore(retestButton, _testFailure.parentNode.firstChild);
+                        }
 
                         var button = doc.createElement("input");
                         button.setAttribute("type", "button");
@@ -800,11 +818,13 @@ function processTestFailures(doc, prLoadingDiv, rowNumber, callbackWhenTestProce
 
                         button.className = "btn btn-sm " + stashPopClassName + " " + jenkinsReloadableInfoClassName;
                         button.style.margin = "0px 0px 3px 0px";
-                        _testFailure.parentNode.insertBefore(button, _testFailure.parentNode.firstChild);
+                        if (jenkinsShowBugFilingButton) {
+                            _testFailure.parentNode.insertBefore(button, _testFailure.parentNode.firstChild);
+                        }
                     });
                 });
 
-                if (true) {
+                if (jenkinsShowFailureIndications) {
                     var div = doc.createElement("div");
 
                     if (typeof htmlDescription === "undefined" || htmlDescription == "") {
@@ -868,79 +888,87 @@ function stripFragment(str) {
 }
 
 function inlineFailureInfoToPRList(title, className, i) {
-    var clickToLoadText = title.getElementsByClassName(className)[0];
-    if (typeof clickToLoadText === "undefined") {
-        // Already expanded. Don't re-expand.
-        return;
-    }
+    chrome.runtime.sendMessage({ method: "getSettings", keys: ["jenkinsOfferInlineFailuresOnPRList"] }, function (response) {
+        if (response.data["jenkinsOfferInlineFailuresOnPRList"]) {
+            var clickToLoadText = title.getElementsByClassName(className)[0];
+            if (typeof clickToLoadText === "undefined") {
+                // Already expanded. Don't re-expand.
+                return;
+            }
 
-    $("." + className).remove();
+            $("." + className).remove();
 
-    log("Inlining Jenkins failures to PR list for " + className + " (position " + i + " on this page)");
+            log("Inlining Jenkins failures to PR list for " + className + " (position " + i + " on this page)");
 
-    // On github.com/pulls there are two "issue-title-link" elements.
-    var thisFailureUrl = title.getElementsByClassName("issue-title-link js-navigation-open")[0].href;
-    log("thisFailureUrl:" + thisFailureUrl);
+            // On github.com/pulls there are two "issue-title-link" elements.
+            var thisFailureUrl = title.getElementsByClassName("issue-title-link js-navigation-open")[0].href;
+            log("thisFailureUrl:" + thisFailureUrl);
 
-    var redDiv = document.createElement("div");
-    redDiv.style.backgroundColor = "#FFAAAA";
-    redDiv.className = stashPopClassName + " " + jenkinsReloadableInfoClassName;
+            var redDiv = document.createElement("div");
+            redDiv.style.backgroundColor = "#FFAAAA";
+            redDiv.className = stashPopClassName + " " + jenkinsReloadableInfoClassName;
 
-    var loading = document.createElement("img");
-    var imgUrl = chrome.extension.getURL("images/loading.gif");
-    loading.src = imgUrl;
+            var loading = document.createElement("img");
+            var imgUrl = chrome.extension.getURL("images/loading.gif");
+            loading.src = imgUrl;
 
-    var prLoadingDiv = document.createElement("div");
-    prLoadingDiv.style.backgroundColor = "#FFAAAA";
-    prLoadingDiv.style.color = "#000000";
-    prLoadingDiv.appendChild(loading);
-    var t = document.createTextNode("Loading PR contents...");
-    prLoadingDiv.appendChild(t);
-    var specificClassName = stashPopClassName + "_LoadPRContents_" + i;
-    prLoadingDiv.className = specificClassName;
+            var prLoadingDiv = document.createElement("div");
+            prLoadingDiv.style.backgroundColor = "#FFAAAA";
+            prLoadingDiv.style.color = "#000000";
+            prLoadingDiv.appendChild(loading);
+            var t = document.createTextNode("Loading PR contents...");
+            prLoadingDiv.appendChild(t);
+            var specificClassName = stashPopClassName + "_LoadPRContents_" + i;
+            prLoadingDiv.className = specificClassName;
 
-    redDiv.appendChild(prLoadingDiv);
+            redDiv.appendChild(prLoadingDiv);
 
-    (function (_thisFailureUrl, _divToAddTo, _prLoadingDiv) {
-        chrome.runtime.sendMessage({
-            method: 'GET',
-            action: 'xhttp',
-            url: _thisFailureUrl,
-            data: ''
-        }, function (responseText) {
-            var parser = new DOMParser();
-            var doc = parser.parseFromString(responseText, "text/html");
-            processTestFailures(
-                doc,
-                _prLoadingDiv,
-                i,
-                function (failurequeue, detailsurl, resultstr, classNameToPlaseResultsIn) {
-                    var divToPlaceResultsIn = document.getElementsByClassName(classNameToPlaseResultsIn)[0];
-                    while (divToPlaceResultsIn.firstChild) {
-                        divToPlaceResultsIn.removeChild(divToPlaceResultsIn.firstChild);
-                    }
+            (function (_thisFailureUrl, _divToAddTo, _prLoadingDiv) {
+                chrome.runtime.sendMessage({
+                    method: 'GET',
+                    action: 'xhttp',
+                    url: _thisFailureUrl,
+                    data: ''
+                }, function (responseText) {
+                    var parser = new DOMParser();
+                    var doc = parser.parseFromString(responseText, "text/html");
+                    processTestFailures(
+                        doc,
+                        _prLoadingDiv,
+                        i,
+                        true,
+                        true,
+                        true,
+                        true,
+                        function (failurequeue, detailsurl, resultstr, classNameToPlaseResultsIn) {
+                            var divToPlaceResultsIn = document.getElementsByClassName(classNameToPlaseResultsIn)[0];
+                            while (divToPlaceResultsIn.firstChild) {
+                                divToPlaceResultsIn.removeChild(divToPlaceResultsIn.firstChild);
+                            }
 
-                    var _individualFailureDiv = document.createElement("div");
-                    var _span = document.createElement("span");
-                    _span.innerHTML = "<b><u>" + failurequeue + "</u></b> <a href = '" + encodeURI(detailsurl) + "' target='_blank'>Details</a><br />";
-                    _individualFailureDiv.appendChild(_span);
+                            var _individualFailureDiv = document.createElement("div");
+                            var _span = document.createElement("span");
+                            _span.innerHTML = "<b><u>" + failurequeue + "</u></b> <a href = '" + encodeURI(detailsurl) + "' target='_blank'>Details</a><br />";
+                            _individualFailureDiv.appendChild(_span);
 
-                    var _nestedDiv = document.createElement("div");
-                    _nestedDiv.style.padding = "0px 0px 0px 30px";
+                            var _nestedDiv = document.createElement("div");
+                            _nestedDiv.style.padding = "0px 0px 0px 30px";
 
-                    var _span2 = document.createElement("span");
-                    _span2.innerHTML = resultstr + "<br /><br />";
-                    _nestedDiv.appendChild(_span2);
+                            var _span2 = document.createElement("span");
+                            _span2.innerHTML = resultstr + "<br /><br />";
+                            _nestedDiv.appendChild(_span2);
 
-                    _individualFailureDiv.appendChild(_nestedDiv);
+                            _individualFailureDiv.appendChild(_nestedDiv);
 
-                    _individualFailureDiv.style.color = "#000000";
-                    divToPlaceResultsIn.appendChild(_individualFailureDiv);
+                            _individualFailureDiv.style.color = "#000000";
+                            divToPlaceResultsIn.appendChild(_individualFailureDiv);
+                        });
                 });
-        });
-    })(thisFailureUrl, redDiv, prLoadingDiv);
+            })(thisFailureUrl, redDiv, prLoadingDiv);
 
-    title.appendChild(redDiv);
+            title.appendChild(redDiv);
+        }
+    });
 }
 
 function openJenkinsDetailsInNewTab() {

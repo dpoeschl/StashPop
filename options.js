@@ -9,6 +9,8 @@ function save_options() {
     var jenkinsShowFailureIndications = document.getElementById('jenkinsShowFailureIndications').checked;
     var jenkinsShowTestFailures = document.getElementById('jenkinsShowTestFailures').checked;
     var jenkinsShowBugFilingButton = document.getElementById('jenkinsShowBugFilingButton').checked;
+    var jenkinsShowRetestButton = document.getElementById('jenkinsShowRetestButton').checked;
+    var jenkinsOfferInlineFailuresOnPRList = document.getElementById('jenkinsOfferInlineFailuresOnPRList').checked;
     var issueCreationRouting = document.getElementById("issueCreationRouting").value;
     var nonDefaultTestInfo = document.getElementById("nonDefaultTestInfo").value;
     var defaultIssueLabels = document.getElementById("defaultIssueLabels").value;
@@ -23,6 +25,8 @@ function save_options() {
         jenkinsShowFailureIndications: jenkinsShowFailureIndications,
         jenkinsShowTestFailures: jenkinsShowTestFailures,
         jenkinsShowBugFilingButton: jenkinsShowBugFilingButton,
+        jenkinsShowRetestButton: jenkinsShowRetestButton,
+        jenkinsOfferInlineFailuresOnPRList: jenkinsOfferInlineFailuresOnPRList,
         issueCreationRouting: issueCreationRouting,
         nonDefaultTestInfo: nonDefaultTestInfo,
         defaultIssueLabels: defaultIssueLabels
@@ -47,12 +51,14 @@ function restore_options() {
         jenkinsShowFailureIndications: true,
         jenkinsShowTestFailures: true,
         jenkinsShowBugFilingButton: true,
+        jenkinsShowRetestButton: true,
+        jenkinsOfferInlineFailuresOnPRList: true,
         issueCreationRouting: "dotnet/roslyn-internal:dotnet/roslyn",
         nonDefaultTestInfo: "dotnet/roslyn:vsi:prtest/win/vsi/p0\ndotnet/roslyn-internal:vsi:prtest/win/vsi/p0",
         defaultIssueLabels: "dotnet:Bug\ndotnet/roslyn-internal:Contributor Pain,Area-Infrastructure"
     }, function (items) {
         document.getElementById('emailIssuesList').checked = items.emailIssuesList;
-        document.getElementById('emailIssue').checked = items.emailIssue;
+        document.getElementById('emailIssue').checked = items.emailIssue; // TODO: Also controls copy workitem
         document.getElementById('emailPullRequestList').checked = items.emailPullRequestList;
         document.getElementById('emailPullRequest').checked = items.emailPullRequest;
         document.getElementById('jenkinsOpenDetailsLinksInNewTab').checked = items.jenkinsOpenDetailsLinksInNewTab;
@@ -60,6 +66,8 @@ function restore_options() {
         document.getElementById('jenkinsShowFailureIndications').checked = items.jenkinsShowFailureIndications;
         document.getElementById('jenkinsShowTestFailures').checked = items.jenkinsShowTestFailures;
         document.getElementById('jenkinsShowBugFilingButton').checked = items.jenkinsShowBugFilingButton;
+        document.getElementById('jenkinsShowRetestButton').checked = items.jenkinsShowRetestButton;
+        document.getElementById('jenkinsOfferInlineFailuresOnPRList').checked = items.jenkinsOfferInlineFailuresOnPRList;
         document.getElementById('issueCreationRouting').value = items.issueCreationRouting;
         document.getElementById('nonDefaultTestInfo').value = items.nonDefaultTestInfo;
         document.getElementById('defaultIssueLabels').value = items.defaultIssueLabels;
