@@ -950,8 +950,12 @@ function sendmultimail(issuesList, isPull) {
         shortBody = shortBody + "Notice: This message contains information about a private repository."
     }
 
-    var finalFullMailToUrl = "mailto:?subject=" + encodeURIComponent(subject) + "&body=" + encodeURIComponent(body);
-    var finalShortMailToUrl = "mailto:?subject=" + encodeURIComponent(subject) + "&body=" + encodeURIComponent(shortBody);
+    var decodedSubject = $('<div/>').html(subject).text();
+    var decodedBody = $('<div/>').html(body).text();
+    var decodedShortBody = $('<div/>').html(shortBody).text();
+
+    var finalFullMailToUrl = "mailto:?subject=" + encodeURIComponent(decodedSubject) + "&body=" + encodeURIComponent(decodedBody);
+    var finalShortMailToUrl = "mailto:?subject=" + encodeURIComponent(decodedSubject) + "&body=" + encodeURIComponent(decodedShortBody);
 
     if (finalFullMailToUrl.length <= 2083) {
         window.location.href = finalFullMailToUrl;
@@ -982,5 +986,7 @@ function sendmail(issueNumber, issueTitle, isPull) {
         body = body + "Notice: This message contains information about a private repository."
     }
 
-    window.location.href = "mailto:?subject=" + encodeURI(subject) + "&body=" + encodeURI(body);
+    var decodedSubject = $('<div/>').html(subject).text();
+    var decodedBody = $('<div/>').html(body).text();
+    window.location.href = "mailto:?subject=" + encodeURIComponent(decodedSubject) + "&body=" + encodeURIComponent(decodedBody);
 }
