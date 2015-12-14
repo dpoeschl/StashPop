@@ -788,19 +788,73 @@ function processTestFailures(doc,
                             var thisJobName = jobName;
                             var thisPreviousFailureUrl = previousFailureUrl;
                             return function () {
-                                var commentText = "@dotnet-bot retest " + thisJobName + " please\n// Previous failure: " + thisPreviousFailureUrl + "\n// Retest reason: ";
-                                $("#new_comment_field").val(commentText);
+                                chrome.runtime.sendMessage({ method: "getSettings", keys: ["testRerunText"] }, function (response) {
+                                    log("Finding retest text");
 
-                                var offset = $("#new_comment_field").offset();
-                                offset.left -= 20;
-                                offset.top -= 20;
-                                $('html, body').animate({
-                                    scrollTop: offset.top,
-                                    scrollLeft: offset.left
+                                    var rerunTextEntries = response.data["testRerunText"].trim().match((/[^\r\n]+/g));
+
+                                    // * = 1, org = 2, repo = 3
+                                    var bestMatchLevel = 0;
+                                    var descriptor = "retest {0} please";
+
+                                    for (var rerunTextNum = 0; rerunTextNum < rerunTextEntries.length; rerunTextNum++) {
+                                        log("  Considering " + rerunTextEntries[rerunTextNum].trim());
+                                        var rerunEntryParts = rerunTextEntries[rerunTextNum].trim().split(":");
+                                        var scope = rerunEntryParts[0].trim();
+
+                                        var matchLevel = 0;
+                                        var entryMatches = false;
+                                        if (scope == "*") {
+                                            matchLevel = 1;
+                                            entryMatches = true;
+                                        } else if (scope.indexOf("/") == -1) { 
+                                            matchLevel = 2;
+                                            entryMatches = scope == currentPageOrg;
+                                        } else { 
+                                            matchLevel = 3;
+                                            var org = scope.split("/")[0];
+                                            var repo = scope.split("/")[1];
+                                            entryMatches = org == currentPageOrg && repo == currentPageRepo;
+                                        }
+
+                                        log("    Matches / Level: " + entryMatches + "/" + matchLevel);
+
+                                        if (entryMatches && matchLevel > bestMatchLevel) {
+                                            var descriptor = rerunEntryParts[1].trim();
+                                            log("      Setting new best match to: " + descriptor);
+                                        }
+                                    }
+
+                                    log("Best-match retest text: " + descriptor);
+
+                                    var commentText = "";
+                                    if (descriptor.indexOf("{0}") == -1) {
+                                        commentText = descriptor;
+                                        log("  No placeholder, so commentText is " + commentText);
+                                    } else {
+                                        var placeholderLocation = descriptor.indexOf("{0}");
+                                        var commentTextStart = descriptor.substr(0, placeholderLocation);
+                                        var commentTextEnd = descriptor.substr(placeholderLocation + "{0}".length);
+
+                                        var commentText = commentTextStart + thisJobName + commentTextEnd;
+
+                                        log("  commentText with filled placeholder is " + commentText);
+                                    }
+
+                                    commentText = commentText + "\n// Previous failure: " + thisPreviousFailureUrl + "\n// Retest reason: ";
+                                    $("#new_comment_field").val(commentText);
+
+                                    var offset = $("#new_comment_field").offset();
+                                    offset.left -= 20;
+                                    offset.top -= 20;
+                                    $('html, body').animate({
+                                        scrollTop: offset.top,
+                                        scrollLeft: offset.left
+                                    });
+
+                                    $("#new_comment_field").stop().css("background-color", "#FFFF9C")
+                                        .animate({ backgroundColor: "#FFFFFF" }, 1500);
                                 });
-
-                                $("#new_comment_field").stop().css("background-color", "#FFFF9C")
-                                    .animate({ backgroundColor: "#FFFFFF" }, 1500);
                             };
                         })();
 

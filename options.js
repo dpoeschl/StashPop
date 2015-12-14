@@ -14,6 +14,7 @@ function save_options() {
     var issueCreationRouting = document.getElementById("issueCreationRouting").value;
     var nonDefaultTestInfo = document.getElementById("nonDefaultTestInfo").value;
     var defaultIssueLabels = document.getElementById("defaultIssueLabels").value;
+    var testRerunText = document.getElementById("testRerunText").value;
 
     chrome.storage.sync.set({
         emailIssuesList: emailIssuesList,
@@ -29,7 +30,8 @@ function save_options() {
         jenkinsOfferInlineFailuresOnPRList: jenkinsOfferInlineFailuresOnPRList,
         issueCreationRouting: issueCreationRouting,
         nonDefaultTestInfo: nonDefaultTestInfo,
-        defaultIssueLabels: defaultIssueLabels
+        defaultIssueLabels: defaultIssueLabels,
+        testRerunText: testRerunText
     }, function () {
         // Update status to let user know options were saved.
         var status = document.getElementById('status');
@@ -55,7 +57,8 @@ function restore_options() {
         jenkinsOfferInlineFailuresOnPRList: true,
         issueCreationRouting: "dotnet/roslyn-internal:dotnet/roslyn",
         nonDefaultTestInfo: "dotnet/roslyn:vsi:prtest/win/vsi/p0\ndotnet/roslyn-internal:vsi:prtest/win/vsi/p0",
-        defaultIssueLabels: "dotnet:Bug\ndotnet/roslyn-internal:Contributor Pain,Area-Infrastructure"
+        defaultIssueLabels: "dotnet:Bug\ndotnet/roslyn-internal:Contributor Pain,Area-Infrastructure",
+        testRerunText: "*:retest {0} please\ndotnet:@dotnet-bot retest {0} please"
     }, function (items) {
         document.getElementById('emailIssuesList').checked = items.emailIssuesList;
         document.getElementById('emailIssue').checked = items.emailIssue; // TODO: Also controls copy workitem
@@ -71,6 +74,7 @@ function restore_options() {
         document.getElementById('issueCreationRouting').value = items.issueCreationRouting;
         document.getElementById('nonDefaultTestInfo').value = items.nonDefaultTestInfo;
         document.getElementById('defaultIssueLabels').value = items.defaultIssueLabels;
+        document.getElementById('testRerunText').value = items.testRerunText;
     });
 }
 document.addEventListener('DOMContentLoaded', restore_options);
