@@ -44,6 +44,7 @@ function save_options() {
 
 function restore_options() {
     chrome.storage.sync.get({
+        // Provide defaults that match those in background.js
         emailIssuesList: true,
         emailIssue: true,
         emailPullRequestList: true,
