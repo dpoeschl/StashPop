@@ -889,7 +889,7 @@ function processTestFailures(doc,
 
                     if (typeof htmlDescription === "undefined" || htmlDescription == "") {
                         htmlDescription = "Unknown Failure - If this is a private Jenkins job, click the 'Details' button to reauthenticate and then reload this failure data.";
-                    }
+                    } 
 
                     div.innerHTML = htmlDescription.trim();
                     div.style.backgroundColor = "#FFAAAA";
