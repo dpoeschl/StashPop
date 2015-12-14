@@ -1,6 +1,6 @@
-![stashpop](https://github.com/dpoeschl/StashPop/blob/master/images/stashpop2_logo.png)
-
 StashPop adds features to GitHub, with extra Jenkins goodness on https://github.com/dotnet/ repositories.
+
+![stashpop](https://github.com/dpoeschl/StashPop/blob/master/images/stashpop2_logo.png =240x)
 
 **Installation**
 ----------------
