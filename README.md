@@ -2,9 +2,13 @@
 
 StashPop adds features to GitHub, with extra Jenkins goodness on https://github.com/dotnet/ repositories.
 
-Note: Added UI elements are visually optimized for users also running [Wide Github](https://github.com/xthexder/wide-github) (from [xthexder](https://github.com/xthexder/))
+**Installation**
+----------------
 
-**Features:**
+Download StashPop from the [Chrome Web Store](https://chrome.google.com/webstore/detail/stashpop/nghjdgghnnljcdgaicggnlbmojcaedhl)!
+
+**Features**
+-------------
 
 1. Adds email buttons for Issues and Pull Requests
   - Added to issue/PR lists and individual views (<a href="screenshots/issueslist.png" target="_blank">screenshot</a>)
@@ -22,17 +26,20 @@ Note: Added UI elements are visually optimized for users also running [Wide Gith
   - Configurable list of non-default test buttons for discoverability
   - Configurable issue filing location for failures in repositories without issues
 
-**To install:**
+**Development**
+---------------
+
+**Enlistment**
 
 1. Clone or download the repository
 2. In Chrome, navigate to [chrome://extensions/](chrome://extensions/)
 3. Enable "Developer mode"
-4. Click "Load unpacked extension..." and point it to your repository.
+4. Click "Load unpacked extension..." and point it to your repository
 
-**To update:**
+**Running a customized version of StashPop**
 
-1. Update to latest from the ```master``` branch
-2. In chrome, navigate to [chrome://extensions/](chrome://extensions/)
+1. Enlist in StashPop and customize as desired
+2. In Chrome, navigate to [chrome://extensions/](chrome://extensions/)
 3. Click the "Reload" link under the "StashPop for GitHub" extension
 
 **To allow access to your Jenkins host machine:**
@@ -40,7 +47,9 @@ Note: Added UI elements are visually optimized for users also running [Wide Gith
 1. Add your domain to the local ```manifest.json``` file's ```"permissions"``` section as ```"http://yourjenkinsserver/*"```
 2. Reload the extension
 
-**Issue Management Shortcuts**
+Admin Shortcuts
+---------------
+**Issue Management**
 
 1. Traige - <a href="https://github.com/dpoeschl/StashPop/issues?q=is%3Aopen+is%3Aissue+no%3Amilestone" target="_blank">No Milestone</a>
 2. Triage - <a href="https://github.com/dpoeschl/StashPop/issues?utf8=%E2%9C%93&q=is%3Aopen+is%3Aissue+-label%3AKind-Enhancement+-label%3AKind-Bug" target="_blank">No Kind</a>
