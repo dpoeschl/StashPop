@@ -1,7 +1,7 @@
 {
   "name": "StashPop",
   "description": "None",
-  "version": "1",
+  "version": "1.0.0",
   "update_url": "http://stashpop.io/updates.xml",
   "manifest_version": 2,
   "options_ui": {
