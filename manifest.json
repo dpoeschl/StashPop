@@ -1,40 +1,42 @@
 {
-"name":"StashPop",
-"description":"None",
-"version":"1",
-"manifest_version":2,
-"options_ui": {
+  "name": "StashPop",
+  "description": "None",
+  "version": "1",
+  "manifest_version": 2,
+  "options_ui": {
     "page": "options.html",
     "chrome_style": true
   },
-"web_accessible_resources": [
-  "scripts/injectedcode.js",
-  "images/loading.gif"
+  "web_accessible_resources": [
+    "scripts/injectedcode.js",
+    "images/loading.gif"
   ],
-"content_scripts": [
+  "content_scripts": [
     {
-      "matches": ["https://github.com/*"],
-      "js": ["jquery-2.1.4.min.js", "jquery.color-2.1.2.js", "content.js"],
+      "matches": [ "https://github.com/*" ],
+      "js": [ "jquery-2.1.4.min.js", "jquery.color-2.1.2.js", "content.js" ],
       "run_at": "document_start"
     }
   ],
-"background": {
-  "scripts": ["background.js"],
-  "persistent": false
+  "background": {
+    "scripts": [ "background.js" ],
+    "persistent": false
   },
-"icons": { "16": "images/stashpop_16.png",
-           "48": "images/stashpop2_48.png",
-          "128": "images/stashpop2_128.png" },
-"browser_action": {
+  "icons": {
+    "16": "images/stashpop_16.png",
+    "48": "images/stashpop2_48.png",
+    "128": "images/stashpop2_128.png"
+  },
+  "browser_action": {
     "default_icon": "images/stashpop_48.png"
   },
-"permissions": [
-  "tabs",
-  "storage",
-  "https://ajax.googleapis.com/",
-  "https://github.com/*",
-  "http://dotnet-ci.cloudapp.net/*",
-  "http://ci.roslyn.io/",
-  "https://ci.roslyn.io/"
+  "permissions": [
+    "tabs",
+    "storage",
+    "https://ajax.googleapis.com/",
+    "https://github.com/*",
+    "http://dotnet-ci.cloudapp.net/*",
+    "http://ci.roslyn.io/",
+    "https://ci.roslyn.io/"
   ]
 }
