@@ -7,6 +7,11 @@
     "page": "options.html",
     "chrome_style": true
   },
+  "applications": {
+    "gecko": {
+      "id": "stashpop@dpoeschl.com"
+    }
+  },
   "web_accessible_resources": [
     "scripts/injectedcode.js",
     "images/loading.gif"
