@@ -45,8 +45,10 @@ chrome.runtime.onMessage.addListener(function (request, sender, callback) {
                 callback({ data: items });
             });
         } else {
-            // TODO: Support settings in Firefox
-            callback({ data: keys });
+            // Firefox currently only supports local storage
+            chrome.storage.local.get(keys, function (items) {
+                callback({ data: items });
+            });
         }
 
         return true;
