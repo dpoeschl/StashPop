@@ -5,7 +5,18 @@ StashPop adds features to GitHub, with extra Jenkins goodness on https://github.
 **Installation**
 ----------------
 
+**Chrome**
+
 Download StashPop from the [Chrome Web Store](https://chrome.google.com/webstore/detail/stashpop/nghjdgghnnljcdgaicggnlbmojcaedhl)!
+
+**Firefox** (Beta Support)
+
+StashPop currently only works on [Firefox Nightly builds](https://nightly.mozilla.org/). If you're using a Nightly build then follow these steps to get set up:
+
+1. Enlist in StashPop or download the source code
+2. Zip everything *inside* the StashPop repository to "StashPop.xpi" (the `manifest.json` should live at the root of the zip file, not nested within another folder) 
+3. In Nightly, navigate to `about:config` and update `xpinstall.signatures.required` to `false`
+4. Navigate to `about:addons`, choose `Install Add-on From File` from the gear menu, and select the .xpi file you made in step 2
 
 **Features**
 -------------
