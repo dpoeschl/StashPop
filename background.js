@@ -40,9 +40,14 @@ chrome.runtime.onMessage.addListener(function (request, sender, callback) {
             }
         }
 
-        chrome.storage.sync.get(keys, function (items) {
-            callback({ data: items });
-        });
+        if (typeof chrome.storage.sync !== "undefined" && chrome.storage.sync != null) {
+            chrome.storage.sync.get(keys, function (items) {
+                callback({ data: items });
+            });
+        } else {
+            // TODO: Support settings in Firefox
+            callback({ data: keys });
+        }
 
         return true;
     }
