@@ -36,7 +36,6 @@
     "default_icon": "images/stashpop_48.png"
   },
   "permissions": [
-    "tabs",
     "storage",
     "https://ajax.googleapis.com/",
     "https://github.com/*",
