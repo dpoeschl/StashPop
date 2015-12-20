@@ -368,18 +368,10 @@ function addJenkinsTestRunTimes() {
                         }
 
                         var timestamp = header.innerText.split("(")[1].split(")")[0];
-
-                        // TODO: time zones?
-                        var date = new Date(Date.parse(timestamp));
-                        var currentdate = new Date();
-
-                        var delta = currentdate - date;
-                        var dayCount = delta / (1000 * 60 * 60 * 24);
-                        var minuteCount = delta / (1000 * 60);
+                        var timestampMoment = moment(timestamp);
+                        var dayCount = moment().diff(timestampMoment, 'days', true);
 
                         var backgroundColor = "#000000";
-                        var timeAgo = Math.round(dayCount * 10) / 10 + " days ago";
-
                         if (dayCount <= 2) { backgroundColor = "#AAFFAA"; } // green
                         else if (dayCount <= 5) { backgroundColor = "#FFC85A"; } // yellow
                         else { backgroundColor = "#FFAAAA"; } // red
@@ -389,7 +381,7 @@ function addJenkinsTestRunTimes() {
                         var textToUpdate = _run.getElementsByClassName("text-muted")[0];
 
                         var span = document.createElement("span");
-                        span.innerHTML = "(" + timeAgo + ")";
+                        span.innerHTML = "(" + timestampMoment.fromNow() + ")";
                         span.style.backgroundColor = backgroundColor;
                         span.setAttribute("title", timestamp + "\n\nGreen: < 2 days\nYellow: 2 to 5 days\nRed: > 5 days");
                         span.className = stashPopClassName + " " + jenkinsReloadableInfoClassName;
