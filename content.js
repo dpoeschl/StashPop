@@ -1063,6 +1063,8 @@ function sendmultimail(issuesList, isPull) {
             singleIssueNumber = issueNumber;
             singleIssueTitle = issueTitle;
 
+            // TODO: Fetch the target branch of each PR.
+
             body = body + issueTitle + " " + baseUrl + issueNumber + "\r\n";
             shortBody = shortBody + "#" + issueNumber + ": " + issueTitle + "\r\n";
         }
@@ -1110,15 +1112,35 @@ function sendmail(issueNumber, issueTitle, isPull) {
 
     var owner = document.getElementsByClassName("entry-title")[0].getElementsByClassName("author")[0].getElementsByTagName("span")[0].innerHTML;
     var repo = document.getElementsByClassName("entry-title")[0].getElementsByTagName("strong")[0].getElementsByTagName("a")[0].innerHTML;
-
-    var targetFullBranchSpecParts = $(".current-branch").first().text().split(":");
-    var targetBranch = targetFullBranchSpecParts.length == 1 ? targetFullBranchSpecParts[0] : targetFullBranchSpecParts[1];
-
-    log("PR target branch: " + targetBranch);
-
     var targetBranchDisplay = "";
-    if (targetBranch != "master") {
-        targetBranchDisplay = "/" + targetBranch;
+
+    if (isPull) {
+        if (isListPage) {
+            // The PR list page contains no information about target branch, so we have to go look it up.
+            var url = "https://github.com/" + currentPageOrg + "/" + currentPageRepo + "/pull/" + issueNumber;
+            chrome.runtime.sendMessage({
+                method: 'GET',
+                action: 'xhttp',
+                url: url,
+                data: ''
+            }, function (responseText) {
+                var parser = new DOMParser();
+                var doc = parser.parseFromString(responseText, "text/html");
+                var fullTargetBranchSpec = doc.getElementsByClassName("current-branch")[0].innerText;
+                log("PR target branch (from individual PR page): " + fullTargetBranchSpec);
+                finishIt(fullTargetBranchSpec);
+            });
+
+        } else {
+            var targetFullBranchSpecParts = $(".current-branch").first().text().split(":");
+            var targetBranch = targetFullBranchSpecParts.length == 1 ? targetFullBranchSpecParts[0] : targetFullBranchSpecParts[1];
+            log("PR target branch: " + targetBranch);
+
+            if (targetBranch != "master" && targetBranch != "") {
+                targetBranchDisplay = "/" + targetBranch;
+                log("PR target branch display: " + targetBranchDisplay);
+            }
+        }
     }
 
     var subject = owner + "/" + repo + targetBranchDisplay + " " + kind + " #" + issueNumber + ": " + issueTitle;
