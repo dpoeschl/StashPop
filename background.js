@@ -10,6 +10,7 @@ chrome.runtime.onMessage.addListener(function (request, sender, callback) {
             callback();
         };
         xhttp.open(method, request.url, true);
+        xhttp.setRequestHeader('Accept-Language', 'en-us, en');
         if (method == 'POST') {
             xhttp.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded');
         }
