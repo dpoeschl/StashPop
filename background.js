@@ -53,5 +53,23 @@ chrome.runtime.onMessage.addListener(function (request, sender, callback) {
         }
 
         return true;
+    } else if (request.method == "requestOriginAccess") {
+        var url = request.keys[0];
+        console.log("Requesting permission to access " + url);
+        chrome.permissions.request({ origins: [url] }, function (granted) {
+            console.log("  Permission: " + granted);
+            callback(granted);
+        });
+
+        return true;
+    } else if (request.method == "checkOriginAccess") {
+        var url = request.keys[0];
+        console.log("Checking permissions for " + url);
+        chrome.permissions.contains({ origins: [url] }, function (granted) {
+            console.log("  Permission " + granted ? "present" : "not present");
+            callback(granted);
+        });
+
+        return true;
     }
 });

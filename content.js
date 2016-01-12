@@ -408,6 +408,28 @@ function createLinkWithCallBack(title, callback, color) {
     return a;
 }
 
+function createRequestJenkinsAccessLinkWithCallbackIfAllowed(url, callback) {
+    return createLinkWithCallBack(
+        "Grant StashPop access",
+        function () {
+            log("Allow/request access button clicked for " + url + ". Sending request...");
+            executeCallbackIfUrlAccessGranted(url, callback);
+            return false;
+        });
+}
+
+function executeCallbackIfUrlAccessGranted(url, callback) {
+    log("Requesting access for " + url + "...");
+    chrome.runtime.sendMessage({ method: "requestOriginAccess", keys: [url] }, function (response) {
+        if (response) {
+            log(" Access granted. Executing callback.");
+            callback();
+        } else {
+            log(" Access denied.");
+        }
+    });
+}
+
 function createButtonWithCallBack(title, callback) {
     var button = document.createElement("input");
     button.setAttribute("type", "button");
@@ -440,7 +462,7 @@ function addJenkinsTestRunTimes() {
                 }
 
                 var textToUpdate = run.getElementsByClassName("text-muted")[0];
- 
+
                 var loading = document.createElement("img");
                 var imgUrl = chrome.extension.getURL("images/loading.gif");
                 loading.src = imgUrl;
@@ -472,7 +494,7 @@ function addJenkinsTestRunTimes() {
                         else if (dayCount <= 5) { backgroundColor = "#FFC85A"; } // yellow
                         else { backgroundColor = "#FFAAAA"; } // red
 
-			            $('.' + _specificClassName).remove();
+                         $('.' + _specificClassName).remove();
 
                         var textToUpdate = _run.getElementsByClassName("text-muted")[0];
 
@@ -840,7 +862,7 @@ function processTestFailures(doc,
                                 if (scopeParts.length == 1 || scopeParts[1].trim() == currentPageRepo) {
                                     var labelList = specParts[1].trim().split(",");
                                     log("    Matches. Adding " + labelList.toString());
-                                    
+
                                     for (var labelNum = 0; labelNum < labelList.length; labelNum++) {
                                         labelName = labelList[labelNum].trim();
                                         if (!(labelName in labelsToUse)) {
@@ -973,16 +995,18 @@ function processTestFailures(doc,
                 });
 
                 if (jenkinsShowFailureIndications) {
-                    var div = doc.createElement("div");
+                    executeCallbackIfPermissionPresent(_testFailUrl, function () {
+                        var div = doc.createElement("div");
 
-                    if (typeof htmlDescription === "undefined" || htmlDescription == "") {
-                        htmlDescription = "Unknown Failure - If this is a private Jenkins job, click the 'Details' button to reauthenticate and then reload this failure data.";
-                    }
+                        if (typeof htmlDescription === "undefined" || htmlDescription == "") {
+                            htmlDescription = "Unknown Failure - If this is a private Jenkins job, click the 'Details' button to reauthenticate and then reload this failure data.";
+                        }
 
-                    div.innerHTML = htmlDescription.trim();
-                    div.style.backgroundColor = "#FFAAAA";
-                    div.className = stashPopClassName + " " + jenkinsReloadableInfoClassName;
-                    _testFailure.parentNode.appendChild(div);
+                        div.innerHTML = htmlDescription.trim();
+                        div.style.backgroundColor = "#FFAAAA";
+                        div.className = stashPopClassName + " " + jenkinsReloadableInfoClassName;
+                        _testFailure.parentNode.appendChild(div);
+                    });
                 }
 
                 $("." + _specificClassNameForJenkinsFailureRedAreaLoader).remove();
@@ -1050,69 +1074,95 @@ function inlineFailureInfoToPRList(title, className, i) {
     var thisFailureUrl = title.getElementsByClassName("issue-title-link js-navigation-open")[0].href;
     log("thisFailureUrl:" + thisFailureUrl);
 
-    var redDiv = document.createElement("div");
-    redDiv.style.backgroundColor = "#FFAAAA";
-    redDiv.className = stashPopClassName + " " + jenkinsReloadableInfoClassName;
+    executeCallbackIfUrlAccessGranted(thisFailureUrl, function () {
+        var redDiv = document.createElement("div");
+        redDiv.style.backgroundColor = "#FFAAAA";
+        redDiv.className = stashPopClassName + " " + jenkinsReloadableInfoClassName;
 
-    var loading = document.createElement("img");
-    var imgUrl = chrome.extension.getURL("images/loading.gif");
-    loading.src = imgUrl;
+        var loading = document.createElement("img");
+        var imgUrl = chrome.extension.getURL("images/loading.gif");
+        loading.src = imgUrl;
 
-    var prLoadingDiv = document.createElement("div");
-    prLoadingDiv.style.backgroundColor = "#FFAAAA";
-    prLoadingDiv.style.color = "#000000";
-    prLoadingDiv.appendChild(loading);
-    var t = document.createTextNode("Loading PR contents...");
-    prLoadingDiv.appendChild(t);
-    var specificClassName = stashPopClassName + "_LoadPRContents_" + i;
-    prLoadingDiv.className = specificClassName;
+        var prLoadingDiv = document.createElement("div");
+        prLoadingDiv.style.backgroundColor = "#FFAAAA";
+        prLoadingDiv.style.color = "#000000";
+        prLoadingDiv.appendChild(loading);
+        var t = document.createTextNode("Loading PR contents...");
+        prLoadingDiv.appendChild(t);
+        var specificClassName = stashPopClassName + "_LoadPRContents_" + i;
+        prLoadingDiv.className = specificClassName;
 
-    redDiv.appendChild(prLoadingDiv);
+        redDiv.appendChild(prLoadingDiv);
 
-    (function (_thisFailureUrl, _divToAddTo, _prLoadingDiv) {
-        chrome.runtime.sendMessage({
-            method: 'GET',
-            action: 'xhttp',
-            url: _thisFailureUrl,
-            data: ''
-        }, function (responseText) {
-            var parser = new DOMParser();
-            var doc = parser.parseFromString(responseText, "text/html");
-            processTestFailures(
-                doc,
-                _prLoadingDiv,
-                i,
-                true,
-                true,
-                true,
-                true,
-                function (failurequeue, detailsurl, resultstr, classNameToPlaseResultsIn) {
-                    var divToPlaceResultsIn = document.getElementsByClassName(classNameToPlaseResultsIn)[0];
-                    while (divToPlaceResultsIn.firstChild) {
-                        divToPlaceResultsIn.removeChild(divToPlaceResultsIn.firstChild);
-                    }
+        (function (_thisFailureUrl, _divToAddTo, _prLoadingDiv) {
+            chrome.runtime.sendMessage({
+                method: 'GET',
+                action: 'xhttp',
+                url: _thisFailureUrl,
+                data: ''
+            }, function (responseText) {
+                var parser = new DOMParser();
+                var doc = parser.parseFromString(responseText, "text/html");
+                processTestFailures(
+                    doc,
+                    _prLoadingDiv,
+                    i,
+                    true,
+                    true,
+                    true,
+                    true,
+                    function (failurequeue, detailsurl, resultstr, classNameToPlaseResultsIn) {
+                        var divToPlaceResultsIn = document.getElementsByClassName(classNameToPlaseResultsIn)[0];
+                        while (divToPlaceResultsIn.firstChild) {
+                            divToPlaceResultsIn.removeChild(divToPlaceResultsIn.firstChild);
+                        }
 
-                    var _individualFailureDiv = document.createElement("div");
-                    var _span = document.createElement("span");
-                    _span.innerHTML = "<b><u>" + failurequeue + "</u></b> <a href = '" + encodeURI(detailsurl) + "' target='_blank'>Details</a><br />";
-                    _individualFailureDiv.appendChild(_span);
+                        var _individualFailureDiv = document.createElement("div");
+                        var _span = document.createElement("span");
+                        _span.innerHTML = "<b><u>" + failurequeue + "</u></b> <a href = '" + encodeURI(detailsurl) + "' target='_blank'>Details</a><br />";
+                        _individualFailureDiv.appendChild(_span);
 
-                    var _nestedDiv = document.createElement("div");
-                    _nestedDiv.style.padding = "0px 0px 0px 30px";
+                        var _nestedDiv = document.createElement("div");
+                        _nestedDiv.style.padding = "0px 0px 0px 30px";
 
-                    var _span2 = document.createElement("span");
-                    _span2.innerHTML = resultstr + "<br /><br />";
-                    _nestedDiv.appendChild(_span2);
+                        var _span2 = document.createElement("span");
+                        _span2.innerHTML = resultstr + "<br /><br />";
+                        _nestedDiv.appendChild(_span2);
 
-                    _individualFailureDiv.appendChild(_nestedDiv);
+                        _individualFailureDiv.appendChild(_nestedDiv);
 
-                    _individualFailureDiv.style.color = "#000000";
-                    divToPlaceResultsIn.appendChild(_individualFailureDiv);
-                });
-        });
-    })(thisFailureUrl, redDiv, prLoadingDiv);
+                        _individualFailureDiv.style.color = "#000000";
+                        divToPlaceResultsIn.appendChild(_individualFailureDiv);
+                    });
+            });
+        })(thisFailureUrl, redDiv, prLoadingDiv);
 
-    title.appendChild(redDiv);
+        title.appendChild(redDiv);
+    });
+}
+
+function executeCallbackIfPermissionPresent(url, callback) {
+    log("Checking access for " + url + "...");
+    chrome.runtime.sendMessage({ method: "checkOriginAccess", keys: [url] }, function (response) {
+        if (response) {
+            log(" Permission present. Executing callback.");
+            callback();
+        } else {
+            log(" Permission missing.");
+        }
+    });
+}
+
+function executeCallbackIfPermissionMissing(url, callback) {
+    log("Checking access for " + url + "...");
+    chrome.runtime.sendMessage({ method: "checkOriginAccess", keys: [url] }, function (response) {
+        if (response) {
+            log(" Permission present.");
+        } else {
+            log(" Permission missing. Executing callback.");
+            callback();
+        }
+    });
 }
 
 function openJenkinsDetailsInNewTab() {
@@ -1122,6 +1172,21 @@ function openJenkinsDetailsInNewTab() {
             for (var i = 0; i < detailsLinks.length; i++) {
                 var detailsLink = detailsLinks[i];
                 detailsLink.target = "_blank";
+
+                (function (_detailsLink) {
+                    executeCallbackIfPermissionMissing(
+                    detailsLink.href,
+                    function () {
+                        var grantAccessLink = createRequestJenkinsAccessLinkWithCallbackIfAllowed(
+                            _detailsLink.href,
+                            function () {
+                                reloadJenkins(false);
+                                return false;
+                            });
+                        grantAccessLink.className = "build-status-details right";
+                        _detailsLink.parentNode.insertBefore(grantAccessLink, _detailsLink.nextSibling);
+                    })
+                })(detailsLink);
             }
         }
     });
