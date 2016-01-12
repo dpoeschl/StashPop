@@ -118,6 +118,20 @@
             &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<textarea id="testRerunText" rows="5" cols="75"></textarea>
         </label>
         <br /><br />
+        <label>
+            &nbsp;&nbsp;&nbsp;&nbsp;Host permissions:<br />
+            &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Examples:<br />
+            &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+            <i>https://jenkins-server/*</i><br />
+            &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Add new host:<br/>
+            &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+            <input id="addHostPermissionHostname"></input>
+            <button id="addHostPermission">Add</button><br>
+            &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span id="addHostPermissionError" style="color: red"></span><br />
+            &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<textarea id="existingHostPermissions" rows="5" cols="75" disabled="true"></textarea>
+        </label>
+        <br /><br />
+        <br /><br />
 
         <div id="status"></div>
         <button id="save">Save</button>
