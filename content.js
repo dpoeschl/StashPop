@@ -17,6 +17,8 @@ document.addEventListener("DOMContentLoaded", function () {
 function initialSetup() {
     log("Performing initial setup");
 
+    configureTooltips();
+
     var s = document.createElement('script');
     s.src = chrome.extension.getURL('scripts/injectedcode.js');
     s.onload = function () {
@@ -29,6 +31,32 @@ function initialSetup() {
         log("Detected page data changed.");
         reload(false);
     }, false);
+}
+
+function configureTooltips() {
+    log("Configuring tooltips");
+
+    $(document).tooltip({
+        items: "[stashpop-title]",
+        track: false,
+        close: function (evt, ui) {
+            $(document).data("ui-tooltip").liveRegion.children().remove();
+        },
+        position: {
+            my: "left+5 top+5",
+            at: "left bottom"
+        },
+        tooltipClass: "ui-tooltip",
+        show: "slideDown",
+        hide: false,
+        content: function () {
+            var element = $(this);
+            if (element.is("[stashpop-title]")) {
+                var text = element.attr("stashpop-title");
+                return text; // "<b>What up?</b> Yo?";
+            }
+        }
+    });
 }
 
 function reload(firstRun) {
@@ -44,6 +72,11 @@ function reload(firstRun) {
         // https://github.com/dotnet/roslyn/pull/5786
         var isPull = postDomainUrlParts[2] == "pull";
 
+        if (isPull) {
+            observeCommentFieldChanges();
+            addCodeReviewSummaryAndButtons();
+        }
+
         addButtonsToIndividualItemPage(title, number, isPull);
         openJenkinsDetailsInNewTab();
         makeBuildStatusWindowsBig();
@@ -57,6 +90,35 @@ function reload(firstRun) {
     }
 
     reloadJenkins(firstRun);
+}
+
+function observeCommentFieldChanges() {
+    var target = document.querySelector('#new_comment_field');
+    var observer = new MutationObserver(function (mutations) {
+        mutations.forEach(function (mutation) {
+            var text = target.value;
+            if (text.indexOf(":+1:") >= 0 || text.indexOf(":shipit:") >= 0 || text.indexOf("LGTM") >= 0 || text.indexOf(":thumbsup:") >= 0) {
+                $(".comment-form-head:visible").each(function () {
+                    this.style.backgroundColor = "#77ff77";
+                });
+            } else if (text.indexOf(":-1:") >= 0) {
+                $(".comment-form-head:visible").each(function () {
+                    this.style.backgroundColor = "#ff7777";
+                });
+            } else if (text.indexOf("Test Signoff") >= 0) {
+                $(".comment-form-head:visible").each(function () {
+                    this.style.backgroundColor = "#77ccff";
+                });
+            } else {
+                $(".comment-form-head:visible").each(function () {
+                    this.style.backgroundColor = "#f7f7f7";
+                });
+            }
+        });
+    });
+
+    var config = { attributes: true, childList: true, characterData: true };
+    observer.observe(target, config);
 }
 
 function reloadJenkins(firstRun) {
@@ -226,7 +288,7 @@ function addButtonsToListPage(isPull) {
         chrome.runtime.sendMessage({ method: "getSettings", keys: ["jenkinsOfferInlineFailuresOnPRList"] }, function (response) {
             if (response.data["jenkinsOfferInlineFailuresOnPRList"]) {
                 log("Handling failures in PR list");
-                var failureTitles = new Array()
+                var failureTitles = new Array();
                 var failureClassNames = new Array();
                 var failureIndices = new Array();
 
@@ -311,8 +373,42 @@ function addButtonsToListPage(isPull) {
     }
 }
 
-function createButtonWithCallBack(title, callback)
-{
+function createCommentSettingLink(title, comment, color) {
+    return createLinkWithCallBack(
+        title,
+        function () {
+            var commentText = comment + "\n";
+            $("#new_comment_field").val(commentText);
+
+            var offset = $("#new_comment_field").offset();
+            offset.left -= 20;
+            offset.top -= 20;
+            $('html, body').animate({
+                scrollTop: offset.top,
+                scrollLeft: offset.left
+            });
+
+            $("#new_comment_field").stop().css("background-color", "#FFFF9C")
+                .animate({ backgroundColor: "#FFFFFF" }, 1500);
+
+            return false;
+        },
+        color);
+}
+
+function createLinkWithCallBack(title, callback, color) {
+    color = color || "#4078c0";
+    var a = document.createElement("a");
+    a.text = title;
+    a.role = "button";
+    a.href = "";
+    a.style.marginRight = "5px";
+    a.style.color = color;
+    a.onclick = callback;
+    return a;
+}
+
+function createButtonWithCallBack(title, callback) {
     var button = document.createElement("input");
     button.setAttribute("type", "button");
     button.setAttribute("value", title);
@@ -1029,6 +1125,146 @@ function openJenkinsDetailsInNewTab() {
             }
         }
     });
+}
+
+function addCodeReviewSummaryAndButtons() {
+    // Buttons
+
+    var btnList = document.getElementById("partial-new-comment-form-actions");
+
+    var text = document.createElement("font");
+    text.color = "#666666";
+    text.textContent = "Code Review: ";
+    btnList.appendChild(text);
+
+    btnList.appendChild(createCommentSettingLink("Approve", ":+1:", "#00aa00"));
+    btnList.appendChild(createCommentSettingLink("Reject", ":-1:", "#aa0000"));
+    btnList.appendChild(createCommentSettingLink("Tested", "Test Signoff\nNotes: "));
+
+    // Reviews
+
+    var positiveReviews = new Array();
+    var negativeReviews = new Array();
+    var testReviews = new Array();
+
+    var comments = document.getElementsByClassName("timeline-comment-wrapper");
+    for (var i = 0; i < comments.length; i++) {
+        var comment = comments[i];
+        if (comment.classList.contains("timeline-new-content")) {
+            continue;
+        }
+
+        // TODO: exclude "email-hidden-reply", example https://github.com/mono/mono/pull/2420
+
+        var body = comment.children[1].getElementsByClassName("js-comment-body")[0];
+        if (typeof body !== "undefined") {
+            var bodyHtml = body.innerHTML;
+            if (bodyHtml.indexOf(':+1:') >= 0 || bodyHtml.indexOf('LGTM') >= 0 || bodyHtml.indexOf(':shipit:') >= 0 || bodyHtml.indexOf(':thumbsup:') >= 0) {
+                positiveReviews.push(comment);
+            }
+
+            if (bodyHtml.indexOf(':-1:') >= 0) {
+                negativeReviews.push(comment);
+            }
+
+            if (bodyHtml.indexOf('Test Signoff') >= 0) {
+                testReviews.push(comment);
+            }
+        }
+    }
+
+    if (positiveReviews.length > 0 || negativeReviews.length > 0 || testReviews.length > 0) {
+        var reviewsContainer = document.createElement("div");
+        reviewsContainer.setAttribute("class", stashPopClassName);
+
+        if (positiveReviews.length > 0) {
+            addReviewsToReviewContainer(reviewsContainer, "Approvals", positiveReviews, "#77ff77");
+        }
+
+        if (negativeReviews.length > 0) {
+            addReviewsToReviewContainer(reviewsContainer, "Rejections", negativeReviews, "#ff7777");
+        }
+
+        if (testReviews.length > 0) {
+            addReviewsToReviewContainer(reviewsContainer, "Tested by", testReviews, "#77ccff");
+        }
+
+        var discussion = document.getElementsByClassName("js-discussion")[0];
+        discussion.insertBefore(reviewsContainer, discussion.firstChild);
+    }
+}
+
+function addReviewsToReviewContainer(reviewsContainer, title, reviews, backgroundColor) {
+    var titleDiv = document.createElement("div");
+    var titleText = document.createElement("b");
+    titleText.textContent = title + ": ";
+    titleDiv.appendChild(titleText);
+    titleDiv.style.cssFloat = "left";
+    titleDiv.style.display = "block";
+    reviewsContainer.appendChild(titleDiv);
+
+    var reviewListDiv = document.createElement("div");
+    reviewListDiv.style.cssFloat = "left";
+    reviewListDiv.style.display = "block";
+
+    for (var i = 0; i < reviews.length; i++) {
+        var review = reviews[i];
+
+        var headerForBackground = review.getElementsByClassName("timeline-comment-header")[0];
+        headerForBackground.style.backgroundColor = backgroundColor;
+
+        var header = review.getElementsByClassName("timeline-comment-header-text")[0];
+        var username = header.getElementsByTagName("strong")[0].innerText;
+        var label = review.getElementsByClassName("timeline-comment-label")[0];
+        var labelPart = "";
+        if (typeof label !== "undefined") {
+            var reviewerKind = label.innerText;
+            labelPart = "<span class='timeline-comment-label' style='margin:0px;'>" + reviewerKind + "</span>";
+        }
+
+        var time = review.getElementsByTagName("time")[0].innerText;
+
+        var imgTag = review.children[0].children[0].cloneNode();
+        imgTag.className = "avatar";
+        imgTag.height = 24;
+        imgTag.width = 24;
+        // imgTag.style.marginLeft = "3px";
+
+        var tooltip = review.children[1].getElementsByClassName("js-comment-body")[0].innerHTML;
+        var tooltipHeader = labelPart + "<p><b>" + username + "</b> commented " + time + "</p>";
+        imgTag.setAttribute("stashpop-title", tooltipHeader + tooltip);
+        //var link = document.createElement("a");
+        ////link.className = "participant-avatar tooltipped tooltipped-s";
+        //// link.setAttribute("aria-label", tooltip);
+        //link.href = "#";
+
+        //link.appendChild(imgTag);
+
+        imgTag.role = "button";
+        imgTag.style.cursor = "pointer";
+        imgTag.style.margin = "0px 0px 3px 3px";
+
+        var clickLocation = "#" + header.getElementsByClassName("timestamp")[0].href.split("#")[1];
+
+        (function (newLocation) {
+            imgTag.onclick = function () {
+                // todo: navigation doesn't work if location.hash == newLocation
+                location.hash = newLocation;
+            };
+        })(clickLocation); 
+
+        reviewListDiv.appendChild(imgTag);
+
+        if (i % 10 == 9) {
+            reviewListDiv.appendChild(document.createElement("br"));
+        }
+    }
+
+    reviewsContainer.appendChild(reviewListDiv);
+
+    var clearDiv = document.createElement("div");
+    clearDiv.style.clear = "both";
+    reviewsContainer.appendChild(clearDiv);
 }
 
 function sendmultimail(issuesList, isPull) {

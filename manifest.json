@@ -19,7 +19,8 @@
   "content_scripts": [
     {
       "matches": [ "https://github.com/*" ],
-      "js": [ "jquery-2.1.4.min.js", "jquery.color-2.1.2.js", "moment.min.js", "content.js" ],
+      "css": [ "style.css", "jquery-ui.theme.min.css" ],
+      "js": [ "jquery-2.1.4.min.js", "jquery.color-2.1.2.js", "moment.min.js", "content.js", "jquery-ui.min.js" ],
       "run_at": "document_start"
     }
   ],
