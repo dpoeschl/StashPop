@@ -1,0 +1,36 @@
+.tooltip {
+    z-index: 10;
+    width: 700px;
+    max-width: 100%;
+    font-size: 0.875em;
+    text-align: left;
+    border-radius: 20px;
+    color: #707070;
+    background: #fffdc2;
+    background-image: none;
+    font-family: 'Droid Sans', sans-serif;
+    text-shadow: 5px 5px #ffffff;
+    -webkit-border-radius: 5px;
+    -moz-border-radius: 5px;
+    border-radius: 5px;
+    border: 8px solid #e1e0aa;
+}
+
+.ui-tooltip {
+    z-index: 10;
+    width: 700px;
+    max-width: 100%;
+    padding: 0px 10px 0px 10px;
+    font-size: 0.875em;
+    text-align: left;
+    border-radius: 20px;
+    background-color: aqua;
+    background-image: none;
+    -webkit-border-radius: 5px;
+    -moz-border-radius: 5px;
+    border: 1px solid #00ff21;
+}
+
+.ui-tooltip li {
+    margin-left: 30px;
+}
