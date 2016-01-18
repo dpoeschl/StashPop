@@ -77,6 +77,35 @@ function restore_options() {
         document.getElementById('defaultIssueLabels').value = items.defaultIssueLabels;
         document.getElementById('testRerunText').value = items.testRerunText;
     });
+    refresh_host_permissions();
+}
+
+function refresh_host_permissions() {
+    chrome.permissions.getAll(function (perms) {
+        document.getElementById('existingHostPermissions').value = perms.origins.join('\n');
+    });
+}
+
+function add_host_permission() {
+    var hostnameInput = document.getElementById('addHostPermissionHostname');
+    var error = document.getElementById('addHostPermissionError');
+    error.textContent = '';
+
+    chrome.permissions.request({
+        origins: [hostnameInput.value]
+    }, function (granted) {
+        if (chrome.runtime.lastError) {
+            error.textContent = 'Error: ' + chrome.runtime.lastError.message;
+        } 
+        else if (granted) {
+            hostnameInput.value = '';
+        } else {
+            error.textContent = 'Error: Permission not granted.';
+        }
+
+        refresh_host_permissions();
+    });
 }
 document.addEventListener('DOMContentLoaded', restore_options);
 document.getElementById('save').addEventListener('click', save_options);
+document.getElementById('addHostPermission').addEventListener('click', add_host_permission);
