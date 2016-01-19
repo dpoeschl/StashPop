@@ -1107,7 +1107,7 @@ function addJenkinsRefreshButton(currentSettings) {
 
     $('.jenkinsreload').click(function (e) {
         e.preventDefault();
-        reloadJenkins(currentSettings);
+        reloadJenkins(false, currentSettings);
     });
 }
 
