@@ -1346,15 +1346,15 @@ function addCodeReviewSummaryAndButtons(codeReviewOptions) {
         reviewsContainer.setAttribute("class", stashPopClassName);
 
         if (positiveReviews.length > 0) {
-            addReviewsToReviewContainerAndColorizeReviews(reviewsContainer, "Approvals", positiveReviews, "#77ff77");
+            addReviewsToReviewContainerAndColorizeReviews(reviewsContainer, "Approvals", positiveReviews, "#77ff77", "#edffed", "#00cc00");
         }
 
         if (negativeReviews.length > 0) {
-            addReviewsToReviewContainerAndColorizeReviews(reviewsContainer, "Rejections", negativeReviews, "#ff7777");
+            addReviewsToReviewContainerAndColorizeReviews(reviewsContainer, "Rejections", negativeReviews, "#ff7777", "#ffedf6", "#cc0000");
         }
 
         if (testReviews.length > 0) {
-            addReviewsToReviewContainerAndColorizeReviews(reviewsContainer, "Tested by", testReviews, "#77ccff");
+            addReviewsToReviewContainerAndColorizeReviews(reviewsContainer, "Tested by", testReviews, "#77ccff", "#dff6ff", "#0000cc");
         }
 
         var discussion = document.getElementsByClassName("js-discussion")[0];
@@ -1402,7 +1402,7 @@ function getBestCodeReviewOptions(codeReviewOptions) {
     return bestMatch;
 }
 
-function addReviewsToReviewContainerAndColorizeReviews(reviewsContainer, title, reviews, backgroundColor) {
+function addReviewsToReviewContainerAndColorizeReviews(reviewsContainer, title, reviews, contributorBackgroundColor, externalBackgroundColor, contributorAggregationBackground) {
     var titleDiv = document.createElement("div");
     var titleText = document.createElement("b");
     titleText.textContent = title + ": ";
@@ -1415,11 +1415,11 @@ function addReviewsToReviewContainerAndColorizeReviews(reviewsContainer, title, 
     reviewListDiv.style.cssFloat = "left";
     reviewListDiv.style.display = "block";
 
+    var commentsFromContributors = new Array();
+    var commentsFromNonContributors = new Array();
+
     for (var i = 0; i < reviews.length; i++) {
         var review = reviews[i];
-
-        var headerForBackground = review.getElementsByClassName("timeline-comment-header")[0];
-        headerForBackground.style.backgroundColor = backgroundColor;
 
         var header = review.getElementsByClassName("timeline-comment-header-text")[0];
         var username = header.getElementsByTagName("strong")[0].innerText;
@@ -1430,24 +1430,21 @@ function addReviewsToReviewContainerAndColorizeReviews(reviewsContainer, title, 
             labelPart = "<span class='timeline-comment-label' style='margin:0px;'>" + reviewerKind + "</span>";
         }
 
+        var headerForBackground = review.getElementsByClassName("timeline-comment-header")[0];
+        headerForBackground.style.backgroundColor = (labelPart == "" ? externalBackgroundColor : contributorBackgroundColor);
+
         var time = review.getElementsByTagName("time")[0].innerText;
 
         var imgTag = review.children[0].children[0].cloneNode();
         imgTag.className = "avatar";
-        imgTag.height = 24;
-        imgTag.width = 24;
-        // imgTag.style.marginLeft = "3px";
+        imgTag.height = 35;
+        imgTag.width = 35;
+        imgTag.style.backgroundColor = (labelPart == "" ? "#C8C8C8" : contributorAggregationBackground);
+        imgTag.style.padding = "3px";
 
         var tooltip = review.children[1].getElementsByClassName("js-comment-body")[0].innerHTML;
         var tooltipHeader = labelPart + "<p><b>" + username + "</b> commented " + time + "</p>";
         imgTag.setAttribute("stashpop-title", tooltipHeader + tooltip);
-        //var link = document.createElement("a");
-        ////link.className = "participant-avatar tooltipped tooltipped-s";
-        //// link.setAttribute("aria-label", tooltip);
-        //link.href = "#";
-
-        //link.appendChild(imgTag);
-
         imgTag.role = "button";
         imgTag.style.cursor = "pointer";
         imgTag.style.margin = "0px 0px 3px 3px";
@@ -1461,7 +1458,16 @@ function addReviewsToReviewContainerAndColorizeReviews(reviewsContainer, title, 
             };
         })(clickLocation);
 
-        reviewListDiv.appendChild(imgTag);
+        if (labelPart == "") {
+            commentsFromNonContributors.push(imgTag);
+        } else {
+            commentsFromContributors.push(imgTag);
+        }
+    }
+
+    var allComments = commentsFromContributors.concat(commentsFromNonContributors);
+    for (var i = 0; i < allComments.length; i++) {
+        reviewListDiv.appendChild(allComments[i]);
 
         if (i % 10 == 9) {
             reviewListDiv.appendChild(document.createElement("br"));
