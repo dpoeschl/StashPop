@@ -1360,6 +1360,17 @@ function addCodeReviewSummaryAndButtons(codeReviewOptions) {
         var discussion = document.getElementsByClassName("js-discussion")[0];
         discussion.insertBefore(reviewsContainer, discussion.firstChild);
     }
+    else {
+        var noCodeReviewsDiv = document.createElement("div");
+        var bold = document.createElement("b");
+        bold.textContent = "Code Reviews";
+        noCodeReviewsDiv.appendChild(bold);
+        noCodeReviewsDiv.appendChild(document.createTextNode(": None yet. "));
+        noCodeReviewsDiv.appendChild(createCommentSettingLink("Be the first!", ""));
+
+        var discussion = document.getElementsByClassName("js-discussion")[0];
+        discussion.insertBefore(noCodeReviewsDiv, discussion.firstChild);
+    }
 }
 
 function getBestCodeReviewOptions(codeReviewOptions) {
