@@ -1,6 +1,6 @@
 <img src="https://github.com/dpoeschl/StashPop/blob/master/images/stashpop2_logo.png" width="200" height="125"/>
 
-StashPop adds features to GitHub, with extra Jenkins goodness on https://github.com/dotnet/ repositories.
+StashPop adds features to GitHub, with extra Jenkins testing support.
 
 **Installation**
 ----------------
@@ -9,7 +9,7 @@ StashPop adds features to GitHub, with extra Jenkins goodness on https://github.
 
 Download StashPop from the [Chrome Web Store](https://chrome.google.com/webstore/detail/stashpop/nghjdgghnnljcdgaicggnlbmojcaedhl)!
 
-**Firefox** (Beta Support)
+**Firefox** (Beta Support - please file any issues you find)
 
 StashPop currently only works on [Firefox Nightly builds](https://nightly.mozilla.org/). If you're using a Nightly build then follow these steps to get set up:
 
@@ -21,12 +21,18 @@ StashPop currently only works on [Firefox Nightly builds](https://nightly.mozill
 **Features**
 -------------
 
-1. Adds email buttons for Issues and Pull Requests
+1. Email Buttons for Issues and Pull Requests
   - Added to issue/PR lists and individual views (<a href="screenshots/issueslist.png" target="_blank">screenshot</a>)
   - Supports issue/PR multi-select
   - Emails are created in your default email application (<a href="screenshots/issueemail.png" target="_blank">screenshot</a>)
 
-2. Jenkins PR support (supports https://github.com/dotnet/ repositories by default, add your own in manifest.json)
+2. Code Reviews
+  - Aggregates code review statuses (approvals, rejections, and test signoff) at the top of the PR Conversation page
+  - Adds code review response buttons to the new comment area to add the default indicator of the chosen status
+  - Adjusts header background color of existing and in-progress comments based on their code review status
+  - Fully customizable per-organization or per-repository
+
+3. Jenkins PR Integration (supports https://github.com/dotnet/ repositories by default, grant access to more servers from any related PR page)
   - Inlines Jenkins build & test failure descriptions in the PR view
   - Inlines Jenkins build & test failures for individual PRs into the PR list view
   - Shows how long ago a Jenkins build ran (<a href="screenshots/jenkinsresults.png" target="_blank">screenshot</a>)
@@ -52,17 +58,3 @@ StashPop currently only works on [Firefox Nightly builds](https://nightly.mozill
 1. Enlist in StashPop and customize as desired
 2. In Chrome, navigate to [chrome://extensions/](chrome://extensions/)
 3. Click the "Reload" link under the "StashPop for GitHub" extension
-
-**To allow access to your Jenkins host machine:**
-
-1. Add your domain to the local ```manifest.json``` file's ```"permissions"``` section as ```"http://yourjenkinsserver/*"```
-2. Reload the extension
-
-Admin Shortcuts
----------------
-**Issue Management**
-
-1. Triage - <a href="https://github.com/dpoeschl/StashPop/issues?q=is%3Aopen+is%3Aissue+no%3Amilestone" target="_blank">No Milestone</a>
-2. Triage - <a href="https://github.com/dpoeschl/StashPop/issues?utf8=%E2%9C%93&q=is%3Aopen+is%3Aissue+-label%3AKind-Enhancement+-label%3AKind-Bug" target="_blank">No Kind</a>
-3. Reporting - <a href="https://github.com/dpoeschl/StashPop/issues?utf8=%E2%9C%93&q=is%3Aopen+is%3Aissue+-author%3Adpoeschl" target="_blank">Open customer issues</a>
-4. Reporting - <a href="https://github.com/dpoeschl/StashPop/pulls?q=is%3Aopen+-author%3Adpoeschl+is%3Apr" target="_blank">Open customer PRs</a>
