@@ -1,7 +1,7 @@
 {
   "name": "StashPop",
   "description": "Adds Email and Test Failure Management Features to GitHub",
-  "version": "1.0.1",
+  "version": "1.1.0",
   "manifest_version": 2,
   "options_ui": {
     "page": "options.html",
