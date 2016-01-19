@@ -35,6 +35,9 @@ chrome.runtime.onMessage.addListener(function (request, sender, callback) {
                 case "testRerunText":
                     keys[request.keys[i]] = "*:retest {0} please\ndotnet:@dotnet-bot retest {0} please";
                     break;
+                case "codeReviewOptions":
+                    keys[request.keys[i]] = "*;:+1:,:thumbsup:,:shipit:,LGTM;:-1:,:thumbsdown:;Test Signoff";
+                    break;
                 default:
                     keys[request.keys[i]] = true;
                     break;
@@ -43,12 +46,12 @@ chrome.runtime.onMessage.addListener(function (request, sender, callback) {
 
         if (typeof chrome.storage.sync !== "undefined" && chrome.storage.sync != null) {
             chrome.storage.sync.get(keys, function (items) {
-                callback({ data: items });
+                callback(items);
             });
         } else {
             // Firefox currently only supports local storage
             chrome.storage.local.get(keys, function (items) {
-                callback({ data: items });
+                callback(items);
             });
         }
 

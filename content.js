@@ -2,6 +2,25 @@
 var stashPopClassName = "stashPop";
 var jenkinsReloadableInfoClassName = "jenkinsReloadableInfo";
 
+// This list must match the list specified in reload()
+var option_emailIssuesList = "emailIssuesList";
+var option_emailIssue = "emailIssue";
+var option_emailPullRequestList = "emailPullRequestList";
+var option_emailPullRequest = "emailPullRequest";
+var option_jenkinsOpenDetailsLinksInNewTab = "jenkinsOpenDetailsLinksInNewTab";
+var option_jenkinsShowRunTime = "jenkinsShowRunTime";
+var option_jenkinsShowFailureIndications = "jenkinsShowFailureIndications";
+var option_jenkinsShowTestFailures = "jenkinsShowTestFailures";
+var option_jenkinsShowBugFilingButton = "jenkinsShowBugFilingButton";
+var option_jenkinsShowRetestButton = "jenkinsShowRetestButton";
+var option_jenkinsOfferInlineFailuresOnPRList = "jenkinsOfferInlineFailuresOnPRList";
+var option_issueCreationRouting = "issueCreationRouting";
+var option_nonDefaultTestInfo = "nonDefaultTestInfo";
+var option_defaultIssueLabels = "defaultIssueLabels";
+var option_testRerunText = "testRerunText";
+var option_showCodeReviewInfo = "showCodeReviewInfo";
+var option_codeReviewOptions = "codeReviewOptions";
+
 document.addEventListener("DOMContentLoaded", function () {
     "use strict";
     log("DOMContentLoaded");
@@ -65,55 +84,116 @@ function reload(firstRun) {
     log("Remove all StashPop elements and reload data");
     $('.' + stashPopClassName).remove();
 
-    if (isIndividualItemPage) {
-        var title = document.getElementsByClassName("js-issue-title")[0].innerHTML;
-        var number = document.getElementsByClassName("gh-header-number")[0].innerHTML.substring(1);
+    chrome.runtime.sendMessage({
+        method: "getSettings",
+        keys:
+            [
+                option_emailIssuesList,
+                option_emailIssue,
+                option_emailPullRequestList,
+                option_emailPullRequest,
+                option_jenkinsOpenDetailsLinksInNewTab,
+                option_jenkinsShowRunTime,
+                option_jenkinsShowFailureIndications,
+                option_jenkinsShowTestFailures,
+                option_jenkinsShowBugFilingButton,
+                option_jenkinsShowRetestButton,
+                option_jenkinsOfferInlineFailuresOnPRList,
+                option_issueCreationRouting,
+                option_nonDefaultTestInfo,
+                option_defaultIssueLabels,
+                option_testRerunText,
+                option_showCodeReviewInfo,
+                option_codeReviewOptions
+            ] },
+        function (currentSettings) {
+            if (isIndividualItemPage) {
+                var title = document.getElementsByClassName("js-issue-title")[0].innerHTML;
+                var number = document.getElementsByClassName("gh-header-number")[0].innerHTML.substring(1);
 
-        // https://github.com/dotnet/roslyn/pull/5786
-        var isPull = postDomainUrlParts[2] == "pull";
+                // https://github.com/dotnet/roslyn/pull/5786
+                var isPull = postDomainUrlParts[2] == "pull";
 
-        if (isPull) {
-            observeCommentFieldChanges();
-            addCodeReviewSummaryAndButtons();
+                if (isPull && currentSettings[option_showCodeReviewInfo]) {
+
+                    var bestCodeReviewOptions = getBestCodeReviewOptions(currentSettings[option_codeReviewOptions]);
+
+                    observeCommentFieldChanges(bestCodeReviewOptions);
+                    addCodeReviewSummaryAndButtons(bestCodeReviewOptions);
+                }
+
+                addButtonsToIndividualItemPage(title, number, isPull, currentSettings);
+
+                makeBuildStatusWindowsBig();
+                if (currentSettings[option_jenkinsOpenDetailsLinksInNewTab]) {
+                    openJenkinsDetailsInNewTab(currentSettings);
+                }
+            }
+
+            if (isListPage) {
+                // https://github.com/dotnet/roslyn/pulls/dpoeschl
+                // https://github.com/pulls
+                var isPull = postDomainUrlParts[2] == "pulls" || (currentPageOrg == null && postDomainUrlParts[0] == "pulls");
+                addButtonsToListPage(isPull, currentSettings);
+            }
+
+            reloadJenkins(firstRun, currentSettings);
         }
-
-        addButtonsToIndividualItemPage(title, number, isPull);
-        openJenkinsDetailsInNewTab();
-        makeBuildStatusWindowsBig();
-    }
-
-    if (isListPage) {
-        // https://github.com/dotnet/roslyn/pulls/dpoeschl
-        // https://github.com/pulls
-        var isPull = postDomainUrlParts[2] == "pulls" || (currentPageOrg == null && postDomainUrlParts[0] == "pulls");
-        addButtonsToListPage(isPull);
-    }
-
-    reloadJenkins(firstRun);
+    );
 }
 
-function observeCommentFieldChanges() {
+function observeCommentFieldChanges(codeReviewOptions) {
+    var splitCodeOptions = codeReviewOptions.split(";");
+    var positiveIndicatorsString = splitCodeOptions[1].trim();
+    var negativeIndicatorsString = splitCodeOptions[2].trim();
+    var testedIndicatorsString = splitCodeOptions[3].trim();
+
+    if (positiveIndicatorsString.length == 0 && negativeIndicatorsString.length == 0 && testedIndicatorsString.length == 0) {
+        log("Empty code review options. Bail.")
+        return;
+    }
+
+    var positiveIndicators = positiveIndicatorsString.split(",");
+    var negativeIndicators = negativeIndicatorsString.split(",");
+    var testedIndicators = testedIndicatorsString.split(",");
+
     var target = document.querySelector('#new_comment_field');
     var observer = new MutationObserver(function (mutations) {
         mutations.forEach(function (mutation) {
             var text = target.value;
-            if (text.indexOf(":+1:") >= 0 || text.indexOf(":shipit:") >= 0 || text.indexOf("LGTM") >= 0 || text.indexOf(":thumbsup:") >= 0) {
-                $(".comment-form-head:visible").each(function () {
-                    this.style.backgroundColor = "#77ff77";
-                });
-            } else if (text.indexOf(":-1:") >= 0) {
-                $(".comment-form-head:visible").each(function () {
-                    this.style.backgroundColor = "#ff7777";
-                });
-            } else if (text.indexOf("Test Signoff") >= 0) {
-                $(".comment-form-head:visible").each(function () {
-                    this.style.backgroundColor = "#77ccff";
-                });
-            } else {
-                $(".comment-form-head:visible").each(function () {
-                    this.style.backgroundColor = "#f7f7f7";
-                });
+
+            for (var c = 0; c < positiveIndicators.length; c++) {
+                if (text.indexOf(positiveIndicators[c]) >= 0) {
+                    $(".comment-form-head:visible").each(function () {
+                        this.style.backgroundColor = "#77ff77";
+                    });
+                    return;
+                }
             }
+
+            for (var c = 0; c < negativeIndicators.length; c++) {
+                if (text.indexOf(negativeIndicators[c]) >= 0) {
+                    $(".comment-form-head:visible").each(function () {
+                        this.style.backgroundColor = "#ff7777";
+                    });
+                    return;
+                }
+            }
+
+            for (var c = 0; c < testedIndicators.length; c++) {
+                if (text.indexOf(testedIndicators[c]) >= 0) {
+                    $(".comment-form-head:visible").each(function () {
+                        this.style.backgroundColor = "#77ccff";
+                    });
+                    return;
+                }
+            }
+
+            // Default background color
+            $(".comment-form-head:visible").each(function () {
+                this.style.backgroundColor = "#f7f7f7";
+            });
+
         });
     });
 
@@ -121,15 +201,25 @@ function observeCommentFieldChanges() {
     observer.observe(target, config);
 }
 
-function reloadJenkins(firstRun) {
+function reloadJenkins(firstRun, currentSettings) {
     if (!firstRun) {
         log("Deleting inlined Jenkins data");
         $('.' + jenkinsReloadableInfoClassName).remove();
     }
 
-    addTestFailureButtonsAndDescriptions();
-    addJenkinsTestRunTimes();
-    addJenkinsRefreshButton();
+    addTestFailureButtonsAndDescriptions(currentSettings);
+
+    if (currentSettings[option_jenkinsShowRunTime]) {
+        addJenkinsTestRunTimes();
+    }
+
+    if (currentSettings[option_jenkinsShowRunTime] || 
+        currentSettings[option_jenkinsShowFailureIndications] ||
+        currentSettings[option_jenkinsShowBugFilingButton] || 
+        currentSettings[option_jenkinsShowRetestButton]) {
+
+        addJenkinsRefreshButton(currentSettings);
+    }
 }
 
 // Globals
@@ -213,163 +303,155 @@ function log(message) {
     console.log("StashPop: " + message);
 }
 
-function addButtonsToIndividualItemPage(title, number, isPull) {
-    chrome.runtime.sendMessage({ method: "getSettings", keys: ["emailIssue", "emailPullRequest"] }, function (response) {
-        if ((isPull && response.data["emailPullRequest"]) || (!isPull && response.data["emailIssue"])) {
-            var buttonsContainer = document.createElement("div");
-            buttonsContainer.setAttribute("class", stashPopClassName);
+function addButtonsToIndividualItemPage(title, number, isPull, currentSettings) {
+    if ((isPull && currentSettings[option_emailPullRequest]) || (!isPull && currentSettings[option_emailIssue])) {
+        var buttonsContainer = document.createElement("div");
+        buttonsContainer.setAttribute("class", stashPopClassName);
 
-            var emailButton = createButtonWithCallBack(
-                isPull ? "Email PR" : "Email Issue",
+        var emailButton = createButtonWithCallBack(
+            isPull ? "Email PR" : "Email Issue",
+            function () {
+                log("Email Item clicked");
+                sendmail(number, title, isPull);
+            });
+
+        buttonsContainer.appendChild(emailButton);
+
+        if (!isPull) {
+            var workItemButton = createButtonWithCallBack(
+                "Copy as WorkItem Attribute",
                 function () {
-                    log("Email Item clicked");
-                    sendmail(number, title, isPull);
+                    log("Copy as WorkItem Attribute clicked");
+                    copyTextToClipboard('<WorkItem(' + number + ', "' + window.location.href + '")>');
                 });
 
-            buttonsContainer.appendChild(emailButton);
-
-            if (!isPull) {
-                var workItemButton = createButtonWithCallBack(
-                    "Copy as WorkItem Attribute",
-                    function () {
-                        log("Copy as WorkItem Attribute clicked");
-                        copyTextToClipboard('<WorkItem(' + number + ', "' + window.location.href + '")>');
-                    });
-
-                workItemButton.style.margin = "0px 0px 0px 4px";
-                buttonsContainer.appendChild(workItemButton);
-            }
-
-            individualItemPageTitleElement.parentNode.appendChild(buttonsContainer);
+            workItemButton.style.margin = "0px 0px 0px 4px";
+            buttonsContainer.appendChild(workItemButton);
         }
-    });
+
+        individualItemPageTitleElement.parentNode.appendChild(buttonsContainer);
+    }
 }
 
-function addButtonsToListPage(isPull) {
-    chrome.runtime.sendMessage({ method: "getSettings", keys: ["emailIssuesList", "emailPullRequestList"] }, function (response) {
-        if ((isPull && response.data["emailPullRequestList"]) || (!isPull && response.data["emailIssuesList"])) {
-            var numberOfCheckedItemsElement = document.getElementsByClassName("js-check-all-count")[0];
-            if (typeof numberOfCheckedItemsElement !== "undefined") {
-                var buttonAll = createButtonWithCallBack(
-                    "Email Selected " + (isPull ? "PRs" : "Issues"),
+function addButtonsToListPage(isPull, currentSettings) {
+    if ((isPull && currentSettings[option_emailPullRequestList]) || (!isPull && currentSettings[option_emailIssuesList])) {
+        var numberOfCheckedItemsElement = document.getElementsByClassName("js-check-all-count")[0];
+        if (typeof numberOfCheckedItemsElement !== "undefined") {
+            var buttonAll = createButtonWithCallBack(
+                "Email Selected " + (isPull ? "PRs" : "Issues"),
+                function () {
+                    log("Email Selected Items clicked");
+                    sendmultimail(itemListElement, isPull);
+                });
+            buttonAll.className = "btn btn-sm";
+            numberOfCheckedItemsElement.parentNode.insertBefore(buttonAll, numberOfCheckedItemsElement.parentNode.firstChild);
+        }
+
+        for (var i = 0; i < itemListElement.children.length; i++) {
+            var itemElement = itemListElement.children[i];
+            var titleElement = itemElement.getElementsByClassName("issue-title")[0];
+
+            var urlParts = titleElement.getElementsByClassName("issue-title-link")[0].href.split("/");
+            var issueNumber = urlParts[urlParts.length - 1];
+            var issueTitle = titleElement.getElementsByClassName("issue-title-link")[0].innerHTML;
+
+            (function () {
+                var _issueNumber = issueNumber;
+                var _issueTitle = issueTitle;
+                var emailButton = createButtonWithCallBack(
+                    isPull ? "Email PR" : "Email Issue",
                     function () {
-                        log("Email Selected Items clicked");
-                        sendmultimail(itemListElement, isPull);
+                        log("Email Item clicked");
+                        sendmail(_issueNumber, _issueTitle, isPull);
                     });
-                buttonAll.className = "btn btn-sm";
-                numberOfCheckedItemsElement.parentNode.insertBefore(buttonAll, numberOfCheckedItemsElement.parentNode.firstChild);
-            }
+                emailButton.className = "btn btn-sm " + stashPopClassName;
+                titleElement.insertBefore(emailButton, titleElement.firstChild);
+            })();
+        }
+    }
 
-            for (var i = 0; i < itemListElement.children.length; i++) {
-                var itemElement = itemListElement.children[i];
+    if (isPull && currentSettings[option_jenkinsOfferInlineFailuresOnPRList]) {
+        log("Handling failures in PR list");
+        var failureTitles = new Array();
+        var failureClassNames = new Array();
+        var failureIndices = new Array();
+
+        for (var i = 0; i < itemListElement.children.length; i++) {
+            var itemElement = itemListElement.children[i];
+            if (typeof itemElement.getElementsByClassName("octicon-x")[0] !== "undefined") {
+                // PR with failures
+                log("Found a failure");
                 var titleElement = itemElement.getElementsByClassName("issue-title")[0];
+                var pullRequestElement = itemElement.getElementsByClassName("issue-title")[0];
 
-                var urlParts = titleElement.getElementsByClassName("issue-title-link")[0].href.split("/");
-                var issueNumber = urlParts[urlParts.length - 1];
-                var issueTitle = titleElement.getElementsByClassName("issue-title-link")[0].innerHTML;
+                // On github.com/pulls there are two "issue-title-link" elements. The first is for the repo, the second for the issue.
+                // Get the issue number, then add the repo qualifier if necessary.
+                var pullRequestUrlParts = pullRequestElement.getElementsByClassName("issue-title-link js-navigation-open")[0].href.split("/");
+                log("PR Request Parts: " + pullRequestUrlParts.toString());
+                var pullRequestNumber = pullRequestUrlParts[pullRequestUrlParts.length - 1];
+                log("In PR #" + pullRequestNumber);
+
+                var pullRequestRepo = "";
+                if (currentPageOrg == null) {
+                    var prOrg = pullRequestUrlParts[pullRequestUrlParts.length - 4];
+                    var prRepo = pullRequestUrlParts[pullRequestUrlParts.length - 3];
+                    pullRequestRepo = prOrg + "_ClassNameFriendlySeparator_" + prRepo;
+                    log("In Repo: " + pullRequestRepo);
+                }
+
+                var pullRequestIdentifier = pullRequestRepo + pullRequestNumber;
+                log("Failure identifier: " + pullRequestIdentifier);
+
+                var showJenkinsFailureLink = document.createElement("a");
+                showJenkinsFailureLink.href = "#";
+                var className = "loadjenkinsfailure" + pullRequestIdentifier;
+                showJenkinsFailureLink.className = stashPopClassName + " " + jenkinsReloadableInfoClassName + " " + className;
+                showJenkinsFailureLink.text = "Show Jenkins failure";
+                showJenkinsFailureLink.style.color = 'red';
+
+                log("titleElement:" + titleElement);
+                log("showJenkinsFailureLink:" + showJenkinsFailureLink);
+
+                titleElement.appendChild(showJenkinsFailureLink);
+
+                failureTitles.push(titleElement);
+                failureClassNames.push(className);
+                failureIndices.push(i);
 
                 (function () {
-                    var _issueNumber = issueNumber;
-                    var _issueTitle = issueTitle;
-                    var emailButton = createButtonWithCallBack(
-                        isPull ? "Email PR" : "Email Issue",
-                        function () {
-                            log("Email Item clicked");
-                            sendmail(_issueNumber, _issueTitle, isPull);
-                        });
-                    emailButton.className = "btn btn-sm " + stashPopClassName;
-                    titleElement.insertBefore(emailButton, titleElement.firstChild);
+                    var _titleElement = titleElement;
+                    var _className = className;
+                    var _i = i;
+
+                    log("Hooking up click event for class " + _className);
+
+                    $('.' + _className).click(function (e) {
+                        e.preventDefault();
+                        log("Click - Load Jenkins Failure for #" + _className.substring("loadjenkinsfailure".length));
+                        inlineFailureInfoToPRList(_titleElement, _className, _i, currentSettings);
+                    });
                 })();
             }
         }
-    });
 
-    if (isPull) {
-        chrome.runtime.sendMessage({ method: "getSettings", keys: ["jenkinsOfferInlineFailuresOnPRList"] }, function (response) {
-            if (response.data["jenkinsOfferInlineFailuresOnPRList"]) {
-                log("Handling failures in PR list");
-                var failureTitles = new Array();
-                var failureClassNames = new Array();
-                var failureIndices = new Array();
+        if (failureTitles.length >= 1) {
+            var headerStates = document.getElementsByClassName("table-list-header-toggle states")[0];
 
-                for (var i = 0; i < itemListElement.children.length; i++) {
-                    var itemElement = itemListElement.children[i];
-                    if (typeof itemElement.getElementsByClassName("octicon-x")[0] !== "undefined") {
-                        // PR with failures
-                        log("Found a failure");
-                        var titleElement = itemElement.getElementsByClassName("issue-title")[0];
-                        var pullRequestElement = itemElement.getElementsByClassName("issue-title")[0];
+            var loadAllFailuresLink = document.createElement("a");
+            loadAllFailuresLink.href = "#";
+            loadAllFailuresLink.className = stashPopClassName + " " + jenkinsReloadableInfoClassName + " loadalljenkinsfailures";
+            loadAllFailuresLink.text = "Show all Jenkins failures";
+            loadAllFailuresLink.style.color = 'red';
+            headerStates.appendChild(loadAllFailuresLink);
 
-                        // On github.com/pulls there are two "issue-title-link" elements. The first is for the repo, the second for the issue.
-                        // Get the issue number, then add the repo qualifier if necessary.
-                        var pullRequestUrlParts = pullRequestElement.getElementsByClassName("issue-title-link js-navigation-open")[0].href.split("/");
-                        log("PR Request Parts: " + pullRequestUrlParts.toString());
-                        var pullRequestNumber = pullRequestUrlParts[pullRequestUrlParts.length - 1];
-                        log("In PR #" + pullRequestNumber);
-
-                        var pullRequestRepo = "";
-                        if (currentPageOrg == null) {
-                            var prOrg = pullRequestUrlParts[pullRequestUrlParts.length - 4];
-                            var prRepo = pullRequestUrlParts[pullRequestUrlParts.length - 3];
-                            pullRequestRepo = prOrg + "_ClassNameFriendlySeparator_" + prRepo;
-                            log("In Repo: " + pullRequestRepo);
-                        }
-
-                        var pullRequestIdentifier = pullRequestRepo + pullRequestNumber;
-                        log("Failure identifier: " + pullRequestIdentifier);
-
-                        var showJenkinsFailureLink = document.createElement("a");
-                        showJenkinsFailureLink.href = "#";
-                        var className = "loadjenkinsfailure" + pullRequestIdentifier;
-                        showJenkinsFailureLink.className = stashPopClassName + " " + jenkinsReloadableInfoClassName + " " + className;
-                        showJenkinsFailureLink.text = "Show Jenkins failure";
-                        showJenkinsFailureLink.style.color = 'red';
-
-                        log("titleElement:" + titleElement);
-                        log("showJenkinsFailureLink:" + showJenkinsFailureLink);
-
-                        titleElement.appendChild(showJenkinsFailureLink);
-
-                        failureTitles.push(titleElement);
-                        failureClassNames.push(className);
-                        failureIndices.push(i);
-
-                        (function () {
-                            var _titleElement = titleElement;
-                            var _className = className;
-                            var _i = i;
-
-                            log("Hooking up click event for class " + _className);
-
-                            $('.' + _className).click(function (e) {
-                                e.preventDefault();
-                                log("Click - Load Jenkins Failure for #" + _className.substring("loadjenkinsfailure".length));
-                                inlineFailureInfoToPRList(_titleElement, _className, _i);
-                            });
-                        })();
-                    }
+            $('.loadalljenkinsfailures').click(function (e) {
+                log("Click - Load All Jenkins Failures")
+                e.preventDefault();
+                for (var i = 0; i < failureTitles.length; i++) {
+                    inlineFailureInfoToPRList(failureTitles[i], failureClassNames[i], failureIndices[i], currentSettings);
                 }
-
-                if (failureTitles.length >= 1) {
-                    var headerStates = document.getElementsByClassName("table-list-header-toggle states")[0];
-
-                    var loadAllFailuresLink = document.createElement("a");
-                    loadAllFailuresLink.href = "#";
-                    loadAllFailuresLink.className = stashPopClassName + " " + jenkinsReloadableInfoClassName + " loadalljenkinsfailures";
-                    loadAllFailuresLink.text = "Show all Jenkins failures";
-                    loadAllFailuresLink.style.color = 'red';
-                    headerStates.appendChild(loadAllFailuresLink);
-
-                    $('.loadalljenkinsfailures').click(function (e) {
-                        log("Click - Load All Jenkins Failures")
-                        e.preventDefault();
-                        for (var i = 0; i < failureTitles.length; i++) {
-                            inlineFailureInfoToPRList(failureTitles[i], failureClassNames[i], failureIndices[i]);
-                        }
-                    });
-                }
-            }
-        });
+            });
+        }
     }
 }
 
@@ -450,81 +532,78 @@ function copyTextToClipboard(text) {
 
 // TODO: Only scrape once between this and addTestFailureButtonsAndDescriptions
 function addJenkinsTestRunTimes() {
-    chrome.runtime.sendMessage({ method: "getSettings", keys: ["jenkinsShowRunTime"] }, function (response) {
-        if (response.data["jenkinsShowRunTime"]) {
+    var testRuns = document.getElementsByClassName("build-status-item");
+    for (var i = 0; i < testRuns.length; i++) {
+        var run = testRuns[i];
+        var detailsLink = run.getElementsByClassName("build-status-details")[0];
+        if (typeof detailsLink === 'undefined') {
+            continue;
+        }
 
-            var testRuns = document.getElementsByClassName("build-status-item");
-            for (var i = 0; i < testRuns.length; i++) {
-                var run = testRuns[i];
-                var detailsLink = run.getElementsByClassName("build-status-details")[0];
-                if (typeof detailsLink === 'undefined') {
-                    continue;
+        var textToUpdate = run.getElementsByClassName("text-muted")[0];
+
+        var loading = document.createElement("img");
+        var imgUrl = chrome.extension.getURL("images/loading.gif");
+        loading.src = imgUrl;
+        var specificClassName = stashPopClassName + "_TestRunTime_" + i;
+        loading.className = stashPopClassName + " " + specificClassName;
+        textToUpdate.appendChild(loading);
+
+        (function (_run, _url, _specificClassName) {
+            chrome.runtime.sendMessage({
+                method: 'GET',
+                action: 'xhttp',
+                url: _url,
+                data: ''
+            }, function (responseText) {
+                var parser = new DOMParser();
+                var doc = parser.parseFromString(responseText, "text/html");
+                var header = doc.getElementsByClassName("build-caption page-headline")[0];
+                if (typeof header === "undefined") {
+                    $('.' + _specificClassName).remove();
+                    return;
                 }
 
-                var textToUpdate = run.getElementsByClassName("text-muted")[0];
+                var timestamp = header.innerText.split("(")[1].split(")")[0];
+                var timestampMoment = moment(timestamp);
+                var dayCount = moment().diff(timestampMoment, 'days', true);
 
-                var loading = document.createElement("img");
-                var imgUrl = chrome.extension.getURL("images/loading.gif");
-                loading.src = imgUrl;
-                var specificClassName = stashPopClassName + "_TestRunTime_" + i;
-                loading.className = stashPopClassName + " " + specificClassName;
-                textToUpdate.appendChild(loading);
+                var backgroundColor = "#000000";
+                if (dayCount <= 2) { backgroundColor = "#AAFFAA"; } // green
+                else if (dayCount <= 5) { backgroundColor = "#FFC85A"; } // yellow
+                else { backgroundColor = "#FFAAAA"; } // red
 
-                (function (_run, _url, _specificClassName) {
-                    chrome.runtime.sendMessage({
-                        method: 'GET',
-                        action: 'xhttp',
-                        url: _url,
-                        data: ''
-                    }, function (responseText) {
-                        var parser = new DOMParser();
-                        var doc = parser.parseFromString(responseText, "text/html");
-                        var header = doc.getElementsByClassName("build-caption page-headline")[0];
-                        if (typeof header === "undefined") {
-                            $('.' + _specificClassName).remove();
-                            return;
-                        }
+                $('.' + _specificClassName).remove();
 
-                        var timestamp = header.innerText.split("(")[1].split(")")[0];
-                        var timestampMoment = moment(timestamp);
-                        var dayCount = moment().diff(timestampMoment, 'days', true);
+                var textToUpdate = _run.getElementsByClassName("text-muted")[0];
 
-                        var backgroundColor = "#000000";
-                        if (dayCount <= 2) { backgroundColor = "#AAFFAA"; } // green
-                        else if (dayCount <= 5) { backgroundColor = "#FFC85A"; } // yellow
-                        else { backgroundColor = "#FFAAAA"; } // red
-
-                        $('.' + _specificClassName).remove();
-
-                        var textToUpdate = _run.getElementsByClassName("text-muted")[0];
-
-                        var span = document.createElement("span");
-                        span.innerHTML = "(" + timestampMoment.fromNow() + ")";
-                        span.style.backgroundColor = backgroundColor;
-                        span.setAttribute("title", timestamp + "\n\nGreen: < 2 days\nYellow: 2 to 5 days\nRed: > 5 days");
-                        span.className = stashPopClassName + " " + jenkinsReloadableInfoClassName;
-                        textToUpdate.appendChild(span);
-                    });
-                })(run, detailsLink.href, specificClassName);
-            }
-        }
-    });
+                var span = document.createElement("span");
+                span.innerHTML = "(" + timestampMoment.fromNow() + ")";
+                span.style.backgroundColor = backgroundColor;
+                span.setAttribute("title", timestamp + "\n\nGreen: < 2 days\nYellow: 2 to 5 days\nRed: > 5 days");
+                span.className = stashPopClassName + " " + jenkinsReloadableInfoClassName;
+                textToUpdate.appendChild(span);
+            });
+        })(run, detailsLink.href, specificClassName);
+    }
 }
 
-function addTestFailureButtonsAndDescriptions() {
-    chrome.runtime.sendMessage({ method: "getSettings", keys: ["jenkinsShowBugFilingButton", "jenkinsShowFailureIndications", "jenkinsShowTestFailures", "jenkinsShowRetestButton"] }, function (response) {
-        if (response.data["jenkinsShowBugFilingButton"] || response.data["jenkinsShowRetestButton"] || response.data["jenkinsShowFailureIndications"]) {
-            processTestFailures(
-                document,
-                null,
-                0,
-                response.data["jenkinsShowBugFilingButton"],
-                response.data["jenkinsShowFailureIndications"],
-                response.data["jenkinsShowTestFailures"],
-                response.data["jenkinsShowRetestButton"],
-                function (x, y, z, w) { });
-        }
-    });
+function addTestFailureButtonsAndDescriptions(currentSettings) {
+    if (currentSettings[option_jenkinsShowBugFilingButton] ||
+        currentSettings[option_jenkinsShowRetestButton] ||
+        currentSettings[option_jenkinsShowFailureIndications]) {
+
+        processTestFailures(
+            document,
+            null,
+            0,
+            currentSettings["jenkinsShowBugFilingButton"],
+            currentSettings["jenkinsShowFailureIndications"],
+            currentSettings["jenkinsShowTestFailures"],
+            currentSettings["jenkinsShowRetestButton"],
+            function (x, y, z, w) { },
+            currentSettings);
+    }
 }
 
 function processTestFailures(doc,
@@ -534,7 +613,8 @@ function processTestFailures(doc,
                              jenkinsShowFailureIndications,
                              jenkinsShowTestFailures,
                              jenkinsShowRetestButton,
-                             callbackWhenTestProcessed) {
+                             callbackWhenTestProcessed,
+                             currentSettings) {
 
     var testFailures = doc.getElementsByClassName("octicon-x build-status-icon");
 
@@ -580,100 +660,98 @@ function processTestFailures(doc,
     }
 
     if (!isListPage) {
-        chrome.runtime.sendMessage({ method: "getSettings", keys: ["nonDefaultTestInfo"] }, function (response) {
-            var nonDefaultTestInfo = response.data["nonDefaultTestInfo"];
-            var nonDefaultTests = nonDefaultTestInfo.trim().match(/[^\r\n]+/g);
+        var nonDefaultTestInfo = currentSettings[option_nonDefaultTestInfo];
+        var nonDefaultTests = nonDefaultTestInfo.trim().match(/[^\r\n]+/g);
 
-            var relevantNonDefaultTests = new Array();
+        var relevantNonDefaultTests = new Array();
 
-            log("Calculating relevant non-default test suites...")
+        log("Calculating relevant non-default test suites...")
 
-            for (var i = 0; i < nonDefaultTests.length; i++) {
-                log("  Considering: " + nonDefaultTests[i])
+        for (var i = 0; i < nonDefaultTests.length; i++) {
+            log("  Considering: " + nonDefaultTests[i])
 
-                var specParts = nonDefaultTests[i].trim().split(":");
-                if (specParts.length == 2 || specParts.length == 3) {
-                    var scope = specParts[0].trim();
-                    var testToRun = specParts[1].trim();
-                    var runIfNotAlreadyRun = specParts.length == 3 ? specParts[2].trim() : testToRun;
+            var specParts = nonDefaultTests[i].trim().split(":");
+            if (specParts.length == 2 || specParts.length == 3) {
+                var scope = specParts[0].trim();
+                var testToRun = specParts[1].trim();
+                var runIfNotAlreadyRun = specParts.length == 3 ? specParts[2].trim() : testToRun;
 
-                    var scopeParts = scope.trim().split("/");
-                    if (scopeParts.length == 1 || scopeParts.length == 2) {
-                        var orgToMatch = scopeParts[0].trim();
-                        if (orgToMatch == currentPageOrg) {
-                            var repoToMatch = scopeParts.length == 2 ? scopeParts[1].trim() : "";
-                            if (scopeParts.length == 1 || repoToMatch == currentPageRepo) {
-                                log("    It matches, adding mapping from " + runIfNotAlreadyRun + " to " + testToRun);
-                                relevantNonDefaultTests[runIfNotAlreadyRun] = testToRun;
-                            }
+                var scopeParts = scope.trim().split("/");
+                if (scopeParts.length == 1 || scopeParts.length == 2) {
+                    var orgToMatch = scopeParts[0].trim();
+                    if (orgToMatch == currentPageOrg) {
+                        var repoToMatch = scopeParts.length == 2 ? scopeParts[1].trim() : "";
+                        if (scopeParts.length == 1 || repoToMatch == currentPageRepo) {
+                            log("    It matches, adding mapping from " + runIfNotAlreadyRun + " to " + testToRun);
+                            relevantNonDefaultTests[runIfNotAlreadyRun] = testToRun;
                         }
                     }
                 }
             }
+        }
 
-            var nonDefaultTestCount = 0;
+        var nonDefaultTestCount = 0;
+        for (var key in relevantNonDefaultTests) {
+            nonDefaultTestCount++;
+        }
+
+        log("relevantNonDefaultTests length: " + nonDefaultTestCount);
+        log("Removing already-run tests...")
+
+        var buildStatusList = $(".build-statuses-list:visible")[0];
+
+        if (typeof buildStatusList !== "undefined") {
+            for (var i = 0; i < buildStatusList.children.length; i++) {
+                var individualStatus = buildStatusList.children[i];
+                var queueName = individualStatus.getElementsByTagName("strong")[0].innerText.trim();
+
+                log("  Trying to delete: " + queueName);
+                delete relevantNonDefaultTests[queueName];
+            }
+
+            nonDefaultTestCount = 0;
             for (var key in relevantNonDefaultTests) {
                 nonDefaultTestCount++;
             }
 
-            log("relevantNonDefaultTests length: " + nonDefaultTestCount);
-            log("Removing already-run tests...")
+            log("Updated relevantNonDefaultTests length: " + nonDefaultTestCount);
 
-            var buildStatusList = $(".build-statuses-list:visible")[0];
+            if (nonDefaultTestCount > 0) {
+                var additionalJobsDiv = doc.createElement("div");
+                additionalJobsDiv.className = stashPopClassName + " " + jenkinsReloadableInfoClassName;
 
-            if (typeof buildStatusList !== "undefined") {
-                for (var i = 0; i < buildStatusList.children.length; i++) {
-                    var individualStatus = buildStatusList.children[i];
-                    var queueName = individualStatus.getElementsByTagName("strong")[0].innerText.trim();
+                var t = document.createTextNode("Run non-default tests: ");
+                additionalJobsDiv.appendChild(t);
 
-                    log("  Trying to delete: " + queueName);
-                    delete relevantNonDefaultTests[queueName];
-                }
-
-                nonDefaultTestCount = 0;
                 for (var key in relevantNonDefaultTests) {
-                    nonDefaultTestCount++;
-                }
+                    var value = relevantNonDefaultTests[key];
+                    (function () {
+                        var jobName = value;
+                        var jobButton = createButtonWithCallBack(
+                            jobName,
+                            function () {
+                                var commentText = "retest " + jobName + " please\n";
+                                $("#new_comment_field").val(commentText);
 
-                log("Updated relevantNonDefaultTests length: " + nonDefaultTestCount);
-
-                if (nonDefaultTestCount > 0) {
-                    var additionalJobsDiv = doc.createElement("div");
-                    additionalJobsDiv.className = stashPopClassName + " " + jenkinsReloadableInfoClassName;
-
-                    var t = document.createTextNode("Run non-default tests: ");
-                    additionalJobsDiv.appendChild(t);
-
-                    for (var key in relevantNonDefaultTests) {
-                        var value = relevantNonDefaultTests[key];
-                        (function () {
-                            var jobName = value;
-                            var jobButton = createButtonWithCallBack(
-                                jobName,
-                                function () {
-                                    var commentText = "retest " + jobName + " please\n";
-                                    $("#new_comment_field").val(commentText);
-
-                                    var offset = $("#new_comment_field").offset();
-                                    offset.left -= 20;
-                                    offset.top -= 20;
-                                    $('html, body').animate({
-                                        scrollTop: offset.top,
-                                        scrollLeft: offset.left
-                                    });
-
-                                    $("#new_comment_field").stop().css("background-color", "#FFFF9C")
-                                        .animate({ backgroundColor: "#FFFFFF" }, 1500);
+                                var offset = $("#new_comment_field").offset();
+                                offset.left -= 20;
+                                offset.top -= 20;
+                                $('html, body').animate({
+                                    scrollTop: offset.top,
+                                    scrollLeft: offset.left
                                 });
-                            jobButton.className = "btn btn-sm";
-                            additionalJobsDiv.appendChild(jobButton);
-                        })();
-                    }
 
-                    buildStatusList.previousSibling.previousSibling.appendChild(additionalJobsDiv);
+                                $("#new_comment_field").stop().css("background-color", "#FFFF9C")
+                                    .animate({ backgroundColor: "#FFFFFF" }, 1500);
+                            });
+                        jobButton.className = "btn btn-sm";
+                        additionalJobsDiv.appendChild(jobButton);
+                    })();
                 }
+
+                buildStatusList.previousSibling.previousSibling.appendChild(additionalJobsDiv);
             }
-        });
+        }
     }
 
     for (var i = 0; i < testFailures.length; i++) {
@@ -765,234 +843,226 @@ function processTestFailures(doc,
                         }
                     }
 
-                    if (true) {
-                        var count = 1;
-                        for (var i = 0; i < h2elements.length; i++) {
-                            var h2 = h2elements[i];
+                    var count = 1;
+                    for (var i = 0; i < h2elements.length; i++) {
+                        var h2 = h2elements[i];
 
-                            if (h2.innerHTML == "HTTP ERROR 404") {
-                                htmlDescription = htmlDescription + "404: Build details page could not be found.";
-                                issueDescription = "404: Build details page could not be found.";
-                            }
+                        if (h2.innerHTML == "HTTP ERROR 404") {
+                            htmlDescription = htmlDescription + "404: Build details page could not be found.";
+                            issueDescription = "404: Build details page could not be found.";
+                        }
 
-                            if (h2.innerHTML == "Identified problems") {
-                                var nodeWithErrorSiblings = h2.parentNode.parentNode;
-                                var errorRow = nodeWithErrorSiblings;
-                                while ((errorRow = errorRow.nextSibling) != null) {
-                                    if (count > 1) {
-                                        issueBody = issueBody + "\r\n\r\n";
-                                        htmlDescription = htmlDescription + "<br /><br />";
-                                    }
-
-                                    var failureTitle = "";
-                                    var failureDescription = "";
-
-                                    var h3s = errorRow.getElementsByTagName("h3");
-                                    var h4s = errorRow.getElementsByTagName("h4");
-                                    if (h3s.length > 0) {
-                                        failureTitle = h3s[0].innerHTML.split("<br")[0].trim();
-                                        failureDescription = h3s[0].getElementsByTagName("b")[0].innerHTML.trim();
-                                    }
-                                    else if (h4s.length > 0) {
-                                        failureTitle = h4s[0].innerHTML.trim();
-                                        failureDescription = h4s[1].innerHTML.trim();
-                                    }
-
-                                    if (count == 1) {
-                                        issueDescription = failureTitle;
-                                    }
-
-                                    issueBody = issueBody + "**Issue " + count + ": " + failureTitle + "**\r\n";
-                                    issueBody = issueBody + failureDescription;
-                                    htmlDescription = htmlDescription + "<b>Issue " + count + ": " + failureTitle + "</b><br />" + failureDescription;
-
-                                    count++;
+                        if (h2.innerHTML == "Identified problems") {
+                            var nodeWithErrorSiblings = h2.parentNode.parentNode;
+                            var errorRow = nodeWithErrorSiblings;
+                            while ((errorRow = errorRow.nextSibling) != null) {
+                                if (count > 1) {
+                                    issueBody = issueBody + "\r\n\r\n";
+                                    htmlDescription = htmlDescription + "<br /><br />";
                                 }
+
+                                var failureTitle = "";
+                                var failureDescription = "";
+
+                                var h3s = errorRow.getElementsByTagName("h3");
+                                var h4s = errorRow.getElementsByTagName("h4");
+                                if (h3s.length > 0) {
+                                    failureTitle = h3s[0].innerHTML.split("<br")[0].trim();
+                                    failureDescription = h3s[0].getElementsByTagName("b")[0].innerHTML.trim();
+                                }
+                                else if (h4s.length > 0) {
+                                    failureTitle = h4s[0].innerHTML.trim();
+                                    failureDescription = h4s[1].innerHTML.trim();
+                                }
+
+                                if (count == 1) {
+                                    issueDescription = failureTitle;
+                                }
+
+                                issueBody = issueBody + "**Issue " + count + ": " + failureTitle + "**\r\n";
+                                issueBody = issueBody + failureDescription;
+                                htmlDescription = htmlDescription + "<b>Issue " + count + ": " + failureTitle + "</b><br />" + failureDescription;
+
+                                count++;
                             }
                         }
+                    }
 
-                        if (count > 2) {
-                            issueDescription = issueDescription + " (+" + (count - 2) + " more)";
-                        }
+                    if (count > 2) {
+                        issueDescription = issueDescription + " (+" + (count - 2) + " more)";
+                    }
 
-                        if (count == 1) {
-                            // we failed to find the failure, or there was none.
-                            // should we add special handling here?
-                        }
+                    if (count == 1) {
+                        // we failed to find the failure, or there was none.
+                        // should we add special handling here?
                     }
                 }
 
                 var testQueueName = _testFailure.parentNode.getElementsByClassName("text-emphasized")[0].innerText.trim();
                 var issueTitle = "[Test Failure] " + issueDescription + " in " + testQueueName + " on PR #" + pullNumber;
 
-                chrome.runtime.sendMessage({ method: "getSettings", keys: ["issueCreationRouting"] }, function (response) {
-                    var issueCreationRouting = response.data["issueCreationRouting"];
-                    var issueRoutes = issueCreationRouting.trim().match(/[^\r\n]+/g);
+                var issueCreationRouting = currentSettings[option_issueCreationRouting];
+                var issueRoutes = issueCreationRouting.trim().match(/[^\r\n]+/g);
 
-                    var targetOrg = currentPageOrg;
-                    var targetRepo = currentPageRepo;
+                var targetOrg = currentPageOrg;
+                var targetRepo = currentPageRepo;
 
-                    for (var routeNum = 0; routeNum < issueRoutes.length; routeNum++) {
-                        var routeParts = issueRoutes[routeNum].trim().split(":");
-                        var fromParts = routeParts[0].trim().split("/");
-                        var toParts = routeParts[1].trim().split("/");
+                for (var routeNum = 0; routeNum < issueRoutes.length; routeNum++) {
+                    var routeParts = issueRoutes[routeNum].trim().split(":");
+                    var fromParts = routeParts[0].trim().split("/");
+                    var toParts = routeParts[1].trim().split("/");
 
-                        if (fromParts.length == 2 && toParts.length == 2 && fromParts[0].trim() == currentPageOrg && fromParts[1].trim() == currentPageRepo) {
-                            targetOrg = toParts[0].trim();
-                            targetRepo = toParts[1].trim();
-                            break;
-                        }
+                    if (fromParts.length == 2 && toParts.length == 2 && fromParts[0].trim() == currentPageOrg && fromParts[1].trim() == currentPageRepo) {
+                        targetOrg = toParts[0].trim();
+                        targetRepo = toParts[1].trim();
+                        break;
                     }
+                }
 
-                    var previousFailureUrl = _testFailUrl;
+                var previousFailureUrl = _testFailUrl;
 
-                    chrome.runtime.sendMessage({ method: "getSettings", keys: ["defaultIssueLabels"] }, function (response) {
-                        var defaultIssueLabelsSpecs = response.data["defaultIssueLabels"].trim().match((/[^\r\n]+/g));
+                var defaultIssueLabelsSpecs = currentSettings[option_defaultIssueLabels].trim().match((/[^\r\n]+/g));
 
-                        log("Determining issue labels...")
+                log("Determining issue labels...")
 
-                        var labelsToUse = new Array();
-                        for (var specNum = 0; specNum < defaultIssueLabelsSpecs.length; specNum++) {
-                            log("  Checking: " + defaultIssueLabelsSpecs[specNum]);
-                            var specParts = defaultIssueLabelsSpecs[specNum].trim().split(":");
-                            var scopeParts = specParts[0].split("/");
+                var labelsToUse = new Array();
+                for (var specNum = 0; specNum < defaultIssueLabelsSpecs.length; specNum++) {
+                    log("  Checking: " + defaultIssueLabelsSpecs[specNum]);
+                    var specParts = defaultIssueLabelsSpecs[specNum].trim().split(":");
+                    var scopeParts = specParts[0].split("/");
 
-                            var organization = scopeParts[0].trim();
-                            if (organization == currentPageOrg) {
-                                if (scopeParts.length == 1 || scopeParts[1].trim() == currentPageRepo) {
-                                    var labelList = specParts[1].trim().split(",");
-                                    log("    Matches. Adding " + labelList.toString());
+                    var organization = scopeParts[0].trim();
+                    if (organization == currentPageOrg) {
+                        if (scopeParts.length == 1 || scopeParts[1].trim() == currentPageRepo) {
+                            var labelList = specParts[1].trim().split(",");
+                            log("    Matches. Adding " + labelList.toString());
 
-                                    for (var labelNum = 0; labelNum < labelList.length; labelNum++) {
-                                        labelName = labelList[labelNum].trim();
-                                        if (!(labelName in labelsToUse)) {
-                                            log("      Actually adding: " + labelName);
-                                            labelsToUse.push(labelName);
-                                        }
-                                    }
+                            for (var labelNum = 0; labelNum < labelList.length; labelNum++) {
+                                labelName = labelList[labelNum].trim();
+                                if (!(labelName in labelsToUse)) {
+                                    log("      Actually adding: " + labelName);
+                                    labelsToUse.push(labelName);
                                 }
                             }
                         }
+                    }
+                }
 
-                        log("Calculated labelsToUse: " + labelsToUse);
+                log("Calculated labelsToUse: " + labelsToUse);
 
-                        // "&labels[]=Area-Infrastructure&labels[]=Contributor%20Pain"
-                        var labelUrlPart = "";
-                        if (labelsToUse.length > 0) {
-                            for (var labelNum = 0; labelNum < labelsToUse.length; labelNum++) {
-                                labelUrlPart = labelUrlPart + "&labels[]=" + labelsToUse[labelNum];
+                // "&labels[]=Area-Infrastructure&labels[]=Contributor%20Pain"
+                var labelUrlPart = "";
+                if (labelsToUse.length > 0) {
+                    for (var labelNum = 0; labelNum < labelsToUse.length; labelNum++) {
+                        labelUrlPart = labelUrlPart + "&labels[]=" + labelsToUse[labelNum];
+                    }
+                }
+
+                log("Constructed labels url part: " + labelUrlPart);
+
+                var url = "https://github.com/" + targetOrg + "/" + targetRepo + "/issues/new?title=" + encodeURIComponent(issueTitle) + "&body=" + encodeURIComponent(issueBody) + labelUrlPart;
+                var jobName = testQueueName;
+
+                var retestButton = doc.createElement("input");
+                retestButton.setAttribute("type", "button");
+                retestButton.setAttribute("value", "Retest");
+                retestButton.setAttribute("name", "buttonname");
+                retestButton.onclick = (function () {
+                    var thisUrl = url;
+                    var thisJobName = jobName;
+                    var thisPreviousFailureUrl = previousFailureUrl;
+                    return function () {
+                        log("Finding retest text");
+
+                        var rerunTextEntries = currentSettings[option_testRerunText].trim().match((/[^\r\n]+/g));
+
+                        // * = 1, org = 2, repo = 3
+                        var bestMatchLevel = 0;
+                        var descriptor = "retest {0} please";
+
+                        for (var rerunTextNum = 0; rerunTextNum < rerunTextEntries.length; rerunTextNum++) {
+                            log("  Considering " + rerunTextEntries[rerunTextNum].trim());
+                            var rerunEntryParts = rerunTextEntries[rerunTextNum].trim().split(":");
+                            var scope = rerunEntryParts[0].trim();
+
+                            var matchLevel = 0;
+                            var entryMatches = false;
+                            if (scope == "*") {
+                                matchLevel = 1;
+                                entryMatches = true;
+                            } else if (scope.indexOf("/") == -1) {
+                                matchLevel = 2;
+                                entryMatches = scope == currentPageOrg;
+                            } else {
+                                matchLevel = 3;
+                                var org = scope.split("/")[0];
+                                var repo = scope.split("/")[1];
+                                entryMatches = org == currentPageOrg && repo == currentPageRepo;
+                            }
+
+                            log("    Matches / Level: " + entryMatches + "/" + matchLevel);
+
+                            if (entryMatches && matchLevel > bestMatchLevel) {
+                                var descriptor = rerunEntryParts[1].trim();
+                                log("      Setting new best match to: " + descriptor);
                             }
                         }
 
-                        log("Constructed labels url part: " + labelUrlPart);
+                        log("Best-match retest text: " + descriptor);
 
-                        var url = "https://github.com/" + targetOrg + "/" + targetRepo + "/issues/new?title=" + encodeURIComponent(issueTitle) + "&body=" + encodeURIComponent(issueBody) + labelUrlPart;
-                        var jobName = testQueueName;
+                        var commentText = "";
+                        if (descriptor.indexOf("{0}") == -1) {
+                            commentText = descriptor;
+                            log("  No placeholder, so commentText is " + commentText);
+                        } else {
+                            var placeholderLocation = descriptor.indexOf("{0}");
+                            var commentTextStart = descriptor.substr(0, placeholderLocation);
+                            var commentTextEnd = descriptor.substr(placeholderLocation + "{0}".length);
 
-                        var retestButton = doc.createElement("input");
-                        retestButton.setAttribute("type", "button");
-                        retestButton.setAttribute("value", "Retest");
-                        retestButton.setAttribute("name", "buttonname");
-                        retestButton.onclick = (function () {
-                            var thisUrl = url;
-                            var thisJobName = jobName;
-                            var thisPreviousFailureUrl = previousFailureUrl;
-                            return function () {
-                                chrome.runtime.sendMessage({ method: "getSettings", keys: ["testRerunText"] }, function (response) {
-                                    log("Finding retest text");
+                            var commentText = commentTextStart + thisJobName + commentTextEnd;
 
-                                    var rerunTextEntries = response.data["testRerunText"].trim().match((/[^\r\n]+/g));
-
-                                    // * = 1, org = 2, repo = 3
-                                    var bestMatchLevel = 0;
-                                    var descriptor = "retest {0} please";
-
-                                    for (var rerunTextNum = 0; rerunTextNum < rerunTextEntries.length; rerunTextNum++) {
-                                        log("  Considering " + rerunTextEntries[rerunTextNum].trim());
-                                        var rerunEntryParts = rerunTextEntries[rerunTextNum].trim().split(":");
-                                        var scope = rerunEntryParts[0].trim();
-
-                                        var matchLevel = 0;
-                                        var entryMatches = false;
-                                        if (scope == "*") {
-                                            matchLevel = 1;
-                                            entryMatches = true;
-                                        } else if (scope.indexOf("/") == -1) {
-                                            matchLevel = 2;
-                                            entryMatches = scope == currentPageOrg;
-                                        } else {
-                                            matchLevel = 3;
-                                            var org = scope.split("/")[0];
-                                            var repo = scope.split("/")[1];
-                                            entryMatches = org == currentPageOrg && repo == currentPageRepo;
-                                        }
-
-                                        log("    Matches / Level: " + entryMatches + "/" + matchLevel);
-
-                                        if (entryMatches && matchLevel > bestMatchLevel) {
-                                            var descriptor = rerunEntryParts[1].trim();
-                                            log("      Setting new best match to: " + descriptor);
-                                        }
-                                    }
-
-                                    log("Best-match retest text: " + descriptor);
-
-                                    var commentText = "";
-                                    if (descriptor.indexOf("{0}") == -1) {
-                                        commentText = descriptor;
-                                        log("  No placeholder, so commentText is " + commentText);
-                                    } else {
-                                        var placeholderLocation = descriptor.indexOf("{0}");
-                                        var commentTextStart = descriptor.substr(0, placeholderLocation);
-                                        var commentTextEnd = descriptor.substr(placeholderLocation + "{0}".length);
-
-                                        var commentText = commentTextStart + thisJobName + commentTextEnd;
-
-                                        log("  commentText with filled placeholder is " + commentText);
-                                    }
-
-                                    commentText = commentText + "\n// Previous failure: " + thisPreviousFailureUrl + "\n// Retest reason: ";
-                                    $("#new_comment_field").val(commentText);
-
-                                    var offset = $("#new_comment_field").offset();
-                                    offset.left -= 20;
-                                    offset.top -= 20;
-                                    $('html, body').animate({
-                                        scrollTop: offset.top,
-                                        scrollLeft: offset.left
-                                    });
-
-                                    $("#new_comment_field").stop().css("background-color", "#FFFF9C")
-                                        .animate({ backgroundColor: "#FFFFFF" }, 1500);
-                                });
-                            };
-                        })();
-
-                        retestButton.className = "btn btn-sm " + stashPopClassName + " " + jenkinsReloadableInfoClassName;
-                        retestButton.style.margin = "0px 0px 3px 0px";
-
-                        if (jenkinsShowRetestButton) {
-                            _testFailure.parentNode.insertBefore(retestButton, _testFailure.parentNode.firstChild);
+                            log("  commentText with filled placeholder is " + commentText);
                         }
 
-                        var button = doc.createElement("input");
-                        button.setAttribute("type", "button");
-                        button.setAttribute("value", "Create Issue");
-                        button.setAttribute("name", "buttonname");
-                        button.onclick = (function () {
-                            var thisUrl = url;
-                            return function () {
-                                window.open(thisUrl);
-                            };
-                        })();
+                        commentText = commentText + "\n// Previous failure: " + thisPreviousFailureUrl + "\n// Retest reason: ";
+                        $("#new_comment_field").val(commentText);
 
-                        button.className = "btn btn-sm " + stashPopClassName + " " + jenkinsReloadableInfoClassName;
-                        button.style.margin = "0px 0px 3px 0px";
-                        if (jenkinsShowBugFilingButton) {
-                            _testFailure.parentNode.insertBefore(button, _testFailure.parentNode.firstChild);
-                        }
-                    });
-                });
+                        var offset = $("#new_comment_field").offset();
+                        offset.left -= 20;
+                        offset.top -= 20;
+                        $('html, body').animate({
+                            scrollTop: offset.top,
+                            scrollLeft: offset.left
+                        });
+
+                        $("#new_comment_field").stop().css("background-color", "#FFFF9C")
+                            .animate({ backgroundColor: "#FFFFFF" }, 1500);
+                    };
+                })();
+
+                retestButton.className = "btn btn-sm " + stashPopClassName + " " + jenkinsReloadableInfoClassName;
+                retestButton.style.margin = "0px 0px 3px 0px";
+
+                if (jenkinsShowRetestButton) {
+                    _testFailure.parentNode.insertBefore(retestButton, _testFailure.parentNode.firstChild);
+                }
+
+                var button = doc.createElement("input");
+                button.setAttribute("type", "button");
+                button.setAttribute("value", "Create Issue");
+                button.setAttribute("name", "buttonname");
+                button.onclick = (function () {
+                    var thisUrl = url;
+                    return function () {
+                        window.open(thisUrl);
+                    };
+                })();
+
+                button.className = "btn btn-sm " + stashPopClassName + " " + jenkinsReloadableInfoClassName;
+                button.style.margin = "0px 0px 3px 0px";
+                if (jenkinsShowBugFilingButton) {
+                    _testFailure.parentNode.insertBefore(button, _testFailure.parentNode.firstChild);
+                }
 
                 if (jenkinsShowFailureIndications) {
                     executeCallbackIfPermissionPresent(_testFailUrl, function () {
@@ -1024,7 +1094,7 @@ function makeBuildStatusWindowsBig() {
     }
 }
 
-function addJenkinsRefreshButton() {
+function addJenkinsRefreshButton(currentSettings) {
     var lists = $(".build-statuses-list");
     for (var i = 0; i < lists.length; i++) {
         var list = lists[i];
@@ -1037,7 +1107,7 @@ function addJenkinsRefreshButton() {
 
     $('.jenkinsreload').click(function (e) {
         e.preventDefault();
-        reloadJenkins();
+        reloadJenkins(currentSettings);
     });
 }
 
@@ -1059,7 +1129,7 @@ function stripFragment(str) {
     return str.indexOf('#') >= 0 ? str.substring(0, str.indexOf('#')) : str;
 }
 
-function inlineFailureInfoToPRList(title, className, i) {
+function inlineFailureInfoToPRList(title, className, i, currentSettings) {
     var clickToLoadText = title.getElementsByClassName(className)[0];
     if (typeof clickToLoadText === "undefined") {
         // Already expanded. Don't re-expand.
@@ -1133,7 +1203,8 @@ function inlineFailureInfoToPRList(title, className, i) {
 
                         _individualFailureDiv.style.color = "#000000";
                         divToPlaceResultsIn.appendChild(_individualFailureDiv);
-                    });
+                    },
+                    currentSettings);
             });
         })(thisFailureUrl, redDiv, prLoadingDiv);
 
@@ -1165,36 +1236,41 @@ function executeCallbackIfPermissionMissing(url, callback) {
     });
 }
 
-function openJenkinsDetailsInNewTab() {
-    chrome.runtime.sendMessage({ method: "getSettings", keys: ["jenkinsOpenDetailsLinksInNewTab"] }, function (response) {
-        if (response.data["jenkinsOpenDetailsLinksInNewTab"]) {
-            var detailsLinks = document.getElementsByClassName("build-status-details");
-            for (var i = 0; i < detailsLinks.length; i++) {
-                var detailsLink = detailsLinks[i];
-                detailsLink.target = "_blank";
+function openJenkinsDetailsInNewTab(currentSettings) {
+    var detailsLinks = document.getElementsByClassName("build-status-details");
+    for (var i = 0; i < detailsLinks.length; i++) {
+        var detailsLink = detailsLinks[i];
+        detailsLink.target = "_blank";
 
-                (function (_detailsLink) {
-                    executeCallbackIfPermissionMissing(
-                    detailsLink.href,
+        (function (_detailsLink) {
+            executeCallbackIfPermissionMissing(
+            detailsLink.href,
+            function () {
+                var grantAccessLink = createRequestJenkinsAccessLinkWithCallbackIfAllowed(
+                    _detailsLink.href,
                     function () {
-                        var grantAccessLink = createRequestJenkinsAccessLinkWithCallbackIfAllowed(
-                            _detailsLink.href,
-                            function () {
-                                reloadJenkins(false);
-                                return false;
-                            });
-                        grantAccessLink.className = "build-status-details right";
-                        _detailsLink.parentNode.insertBefore(grantAccessLink, _detailsLink.nextSibling);
-                    })
-                })(detailsLink);
-            }
-        }
-    });
+                        reloadJenkins(false, currentSettings);
+                        return false;
+                    });
+                grantAccessLink.className = "build-status-details right";
+                _detailsLink.parentNode.insertBefore(grantAccessLink, _detailsLink.nextSibling);
+            })
+        })(detailsLink);
+    }
 }
 
-function addCodeReviewSummaryAndButtons() {
-    // Buttons
+function addCodeReviewSummaryAndButtons(codeReviewOptions) {
+    var splitCodeOptions = codeReviewOptions.split(";");
+    var positiveIndicatorsString = splitCodeOptions[1].trim();
+    var negativeIndicatorsString = splitCodeOptions[2].trim();
+    var testedIndicatorsString = splitCodeOptions[3].trim();
 
+    if (positiveIndicatorsString.length == 0 && negativeIndicatorsString.length == 0 && testedIndicatorsString.length == 0) {
+        log("Empty code review options. Bail.")
+        return;
+    }
+
+    // Buttons
     var btnList = document.getElementById("partial-new-comment-form-actions");
 
     var text = document.createElement("font");
@@ -1202,12 +1278,23 @@ function addCodeReviewSummaryAndButtons() {
     text.textContent = "Code Review: ";
     btnList.appendChild(text);
 
-    btnList.appendChild(createCommentSettingLink("Approve", ":+1:", "#00aa00"));
-    btnList.appendChild(createCommentSettingLink("Reject", ":-1:", "#aa0000"));
-    btnList.appendChild(createCommentSettingLink("Tested", "Test Signoff\nNotes: "));
+    var positiveIndicators = positiveIndicatorsString.split(",");
+    var negativeIndicators = negativeIndicatorsString.split(",");
+    var testedIndicators = testedIndicatorsString.split(",");
+
+    if (positiveIndicatorsString.length > 0) {
+        btnList.appendChild(createCommentSettingLink("Approve", positiveIndicators[0], "#00aa00"));
+    }
+    
+    if (negativeIndicatorsString.length > 0) {
+        btnList.appendChild(createCommentSettingLink("Reject", negativeIndicators[0], "#aa0000"));
+    }
+
+    if (testedIndicatorsString.length > 0) {
+        btnList.appendChild(createCommentSettingLink("Tested", testedIndicators[0]));
+    }
 
     // Reviews
-
     var positiveReviews = new Array();
     var negativeReviews = new Array();
     var testReviews = new Array();
@@ -1224,16 +1311,32 @@ function addCodeReviewSummaryAndButtons() {
         var body = comment.children[1].getElementsByClassName("js-comment-body")[0];
         if (typeof body !== "undefined") {
             var bodyHtml = body.innerHTML;
-            if (bodyHtml.indexOf(':+1:') >= 0 || bodyHtml.indexOf('LGTM') >= 0 || bodyHtml.indexOf(':shipit:') >= 0 || bodyHtml.indexOf(':thumbsup:') >= 0) {
-                positiveReviews.push(comment);
+
+            if (positiveIndicatorsString.length > 0) {
+                for (var c = 0; c < positiveIndicators.length; c++) {
+                    if (bodyHtml.indexOf(positiveIndicators[c]) >= 0) {
+                        positiveReviews.push(comment);
+                        break;
+                    }
+                }
             }
 
-            if (bodyHtml.indexOf(':-1:') >= 0) {
-                negativeReviews.push(comment);
+            if (negativeIndicatorsString.length > 0) {
+                for (var c = 0; c < negativeIndicators.length; c++) {
+                    if (bodyHtml.indexOf(negativeIndicators[c]) >= 0) {
+                        negativeReviews.push(comment);
+                        break;
+                    }
+                }
             }
 
-            if (bodyHtml.indexOf('Test Signoff') >= 0) {
-                testReviews.push(comment);
+            if (testedIndicatorsString.length > 0) {
+                for (var c = 0; c < testedIndicators.length; c++) {
+                    if (bodyHtml.indexOf(testedIndicators[c]) >= 0) {
+                        testReviews.push(comment);
+                        break;
+                    }
+                }
             }
         }
     }
@@ -1243,15 +1346,15 @@ function addCodeReviewSummaryAndButtons() {
         reviewsContainer.setAttribute("class", stashPopClassName);
 
         if (positiveReviews.length > 0) {
-            addReviewsToReviewContainer(reviewsContainer, "Approvals", positiveReviews, "#77ff77");
+            addReviewsToReviewContainerAndColorizeReviews(reviewsContainer, "Approvals", positiveReviews, "#77ff77");
         }
 
         if (negativeReviews.length > 0) {
-            addReviewsToReviewContainer(reviewsContainer, "Rejections", negativeReviews, "#ff7777");
+            addReviewsToReviewContainerAndColorizeReviews(reviewsContainer, "Rejections", negativeReviews, "#ff7777");
         }
 
         if (testReviews.length > 0) {
-            addReviewsToReviewContainer(reviewsContainer, "Tested by", testReviews, "#77ccff");
+            addReviewsToReviewContainerAndColorizeReviews(reviewsContainer, "Tested by", testReviews, "#77ccff");
         }
 
         var discussion = document.getElementsByClassName("js-discussion")[0];
@@ -1259,7 +1362,47 @@ function addCodeReviewSummaryAndButtons() {
     }
 }
 
-function addReviewsToReviewContainer(reviewsContainer, title, reviews, backgroundColor) {
+function getBestCodeReviewOptions(codeReviewOptions) {
+    var codeReviewOptionsEntries = codeReviewOptions.trim().match((/[^\r\n]+/g));
+    log("Calculating best matching code review options");
+
+    // * = 1, org = 2, repo = 3
+    var bestMatchLevel = 0;
+    for (var i = 0; i < codeReviewOptionsEntries.length; i++) {
+        log("  Considering " + codeReviewOptionsEntries[i].trim());
+
+        var rerunEntryParts = codeReviewOptionsEntries[i].trim().split(";");
+        var scope = rerunEntryParts[0].trim();
+
+        var matchLevel = 0;
+        var entryMatches = false;
+        if (scope == "*") {
+            matchLevel = 1;
+            entryMatches = true;
+        } else if (scope.indexOf("/") == -1) {
+            matchLevel = 2;
+            entryMatches = scope == currentPageOrg;
+        } else {
+            matchLevel = 3;
+            var org = scope.split("/")[0];
+            var repo = scope.split("/")[1];
+            entryMatches = org == currentPageOrg && repo == currentPageRepo;
+        }
+
+        log("    Matches / Level: " + entryMatches + "/" + matchLevel);
+
+        if (entryMatches && matchLevel > bestMatchLevel) {
+            var bestMatch = codeReviewOptionsEntries[i].trim();
+            log("      Setting new best match to: " + bestMatch);
+        }
+    }
+
+    log("Best-match code review options: " + bestMatch);
+
+    return bestMatch;
+}
+
+function addReviewsToReviewContainerAndColorizeReviews(reviewsContainer, title, reviews, backgroundColor) {
     var titleDiv = document.createElement("div");
     var titleText = document.createElement("b");
     titleText.textContent = title + ": ";

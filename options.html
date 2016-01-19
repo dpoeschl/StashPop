@@ -34,7 +34,7 @@
 
         <br /><br />
 
-        <b>Jenkins Options</b><br />
+        <b>Pull Request Options</b><br />
         <label>
             &nbsp;&nbsp;&nbsp;&nbsp;<input type="checkbox" id="jenkinsOpenDetailsLinksInNewTab">
             Open "details" links in a new tab
@@ -42,7 +42,7 @@
         <br />
         <label>
             &nbsp;&nbsp;&nbsp;&nbsp;<input type="checkbox" id="jenkinsShowRunTime">
-            Show run time
+            Show test run time
         </label>
         <br />
         <label>
@@ -68,6 +68,26 @@
         <label>
             &nbsp;&nbsp;&nbsp;&nbsp;<input type="checkbox" id="jenkinsOfferInlineFailuresOnPRList">
             Offer to inline test failures on PR lists
+        </label>
+        <br />
+        <label>
+            &nbsp;&nbsp;&nbsp;&nbsp;<input type="checkbox" id="showCodeReviewInfo">
+            Show code review information
+        </label>
+        <br /><br />
+        <label>
+            &nbsp;&nbsp;&nbsp;&nbsp;Code Review Options<br />
+            &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Examples:<br />
+            &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+            <i>Organization;Approved;Rejected;TestSignoff</i><br />
+            &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+            <i>Organization/Repo;Approval1,Approval2;Rejected1,Rejected2;TestSignoff1,TestSignoff2</i><br />
+            &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+            <i>Organization/Repo2;:+1:,:thumbsup:;:-1:;Test Signoff</i><br />
+            &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+            <i>Organization/RepoToIgnore;;;</i><br />
+            &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Configured options:<br />
+            &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<textarea id="codeReviewOptions" rows="5" cols="75"></textarea>
         </label>
         <br /><br />
         <label>

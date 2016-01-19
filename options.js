@@ -11,10 +11,12 @@ function save_options() {
     var jenkinsShowBugFilingButton = document.getElementById('jenkinsShowBugFilingButton').checked;
     var jenkinsShowRetestButton = document.getElementById('jenkinsShowRetestButton').checked;
     var jenkinsOfferInlineFailuresOnPRList = document.getElementById('jenkinsOfferInlineFailuresOnPRList').checked;
+    var showCodeReviewInfo = document.getElementById("showCodeReviewInfo").checked;
     var issueCreationRouting = document.getElementById("issueCreationRouting").value;
     var nonDefaultTestInfo = document.getElementById("nonDefaultTestInfo").value;
     var defaultIssueLabels = document.getElementById("defaultIssueLabels").value;
     var testRerunText = document.getElementById("testRerunText").value;
+    var codeReviewOptions = document.getElementById("codeReviewOptions").value;
 
     chrome.storage.sync.set({
         emailIssuesList: emailIssuesList,
@@ -31,7 +33,9 @@ function save_options() {
         issueCreationRouting: issueCreationRouting,
         nonDefaultTestInfo: nonDefaultTestInfo,
         defaultIssueLabels: defaultIssueLabels,
-        testRerunText: testRerunText
+        testRerunText: testRerunText,
+        showCodeReviewInfo: showCodeReviewInfo,
+        codeReviewOptions: codeReviewOptions
     }, function () {
         // Update status to let user know options were saved.
         var status = document.getElementById('status');
@@ -56,10 +60,12 @@ function restore_options() {
         jenkinsShowBugFilingButton: true,
         jenkinsShowRetestButton: true,
         jenkinsOfferInlineFailuresOnPRList: true,
+        showCodeReviewInfo: true,
         issueCreationRouting: "dotnet/roslyn-internal:dotnet/roslyn",
         nonDefaultTestInfo: "dotnet/roslyn:vsi:prtest/win/vsi/p0\ndotnet/roslyn-internal:vsi:prtest/win/vsi/p0",
         defaultIssueLabels: "dotnet:Bug\ndotnet/roslyn-internal:Contributor Pain,Area-Infrastructure",
-        testRerunText: "*:retest {0} please\ndotnet:@dotnet-bot retest {0} please"
+        testRerunText: "*:retest {0} please\ndotnet:@dotnet-bot retest {0} please",
+        codeReviewOptions: "*;:+1:,:thumbsup:,:shipit:,LGTM;:-1:,:thumbsdown:;Test Signoff",
     }, function (items) {
         document.getElementById('emailIssuesList').checked = items.emailIssuesList;
         document.getElementById('emailIssue').checked = items.emailIssue; // TODO: Also controls copy workitem
@@ -72,6 +78,8 @@ function restore_options() {
         document.getElementById('jenkinsShowBugFilingButton').checked = items.jenkinsShowBugFilingButton;
         document.getElementById('jenkinsShowRetestButton').checked = items.jenkinsShowRetestButton;
         document.getElementById('jenkinsOfferInlineFailuresOnPRList').checked = items.jenkinsOfferInlineFailuresOnPRList;
+        document.getElementById('showCodeReviewInfo').checked = items.showCodeReviewInfo;
+        document.getElementById('codeReviewOptions').value = items.codeReviewOptions;
         document.getElementById('issueCreationRouting').value = items.issueCreationRouting;
         document.getElementById('nonDefaultTestInfo').value = items.nonDefaultTestInfo;
         document.getElementById('defaultIssueLabels').value = items.defaultIssueLabels;
