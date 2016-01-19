@@ -27,9 +27,9 @@ StashPop currently only works on [Firefox Nightly builds](https://nightly.mozill
   - Emails are created in your default email application (<a href="screenshots/issueemail.png" target="_blank">screenshot</a>)
 
 2. Code Reviews
-  - Aggregates code review statuses (approvals, rejections, and test signoff) at the top of the PR Conversation page
+  - Aggregates code review statuses (approvals, rejections, and test signoff) at the top of the PR Conversation page (<a href="screenshots/codereviewsignoffaggregation.png" target="_blank">screenshot</a>)
   - Adds code review response buttons to the new comment area to add the default indicator of the chosen status
-  - Adjusts header background color of existing and in-progress comments based on their code review status
+  - Adjusts header background color of existing and in-progress comments based on their code review status (<a href="screenshots/codereviewhighlightingandbuttons.png" target="_blank">screenshot</a>)
   - Fully customizable per-organization or per-repository
 
 3. Jenkins PR Integration (supports https://github.com/dotnet/ repositories by default, grant access to more servers from any related PR page)
