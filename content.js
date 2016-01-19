@@ -405,7 +405,7 @@ function addButtonsToListPage(isPull, currentSettings) {
                 var showJenkinsFailureLink = document.createElement("a");
                 showJenkinsFailureLink.href = "#";
                 var className = "loadjenkinsfailure" + pullRequestIdentifier;
-                showJenkinsFailureLink.className = stashPopClassName + " " + jenkinsReloadableInfoClassName + " " + className;
+                showJenkinsFailureLink.className = stashPopClassName + " " + className;
                 showJenkinsFailureLink.text = "Show Jenkins failure";
                 showJenkinsFailureLink.style.color = 'red';
 
@@ -439,7 +439,7 @@ function addButtonsToListPage(isPull, currentSettings) {
 
             var loadAllFailuresLink = document.createElement("a");
             loadAllFailuresLink.href = "#";
-            loadAllFailuresLink.className = stashPopClassName + " " + jenkinsReloadableInfoClassName + " loadalljenkinsfailures";
+            loadAllFailuresLink.className = stashPopClassName + " loadalljenkinsfailures";
             loadAllFailuresLink.text = "Show all Jenkins failures";
             loadAllFailuresLink.style.color = 'red';
             headerStates.appendChild(loadAllFailuresLink);
