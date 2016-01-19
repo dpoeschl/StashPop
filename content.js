@@ -149,8 +149,8 @@ function resetGlobals() {
     log("Clearing old globals");
 
     currentPageFullUrl = null;
-    postDomainUrlParts= null;
-    currentPageOrg= null;
+    postDomainUrlParts = null;
+    currentPageOrg = null;
     currentPageRepo = null;
     isIndividualItemPage = null;
     individualItemPageTitleElement = null;
@@ -481,8 +481,8 @@ function addJenkinsTestRunTimes() {
                         var doc = parser.parseFromString(responseText, "text/html");
                         var header = doc.getElementsByClassName("build-caption page-headline")[0];
                         if (typeof header === "undefined") {
-                          $('.' + _specificClassName).remove();
-                          return;
+                            $('.' + _specificClassName).remove();
+                            return;
                         }
 
                         var timestamp = header.innerText.split("(")[1].split(")")[0];
@@ -494,7 +494,7 @@ function addJenkinsTestRunTimes() {
                         else if (dayCount <= 5) { backgroundColor = "#FFC85A"; } // yellow
                         else { backgroundColor = "#FFAAAA"; } // red
 
-                         $('.' + _specificClassName).remove();
+                        $('.' + _specificClassName).remove();
 
                         var textToUpdate = _run.getElementsByClassName("text-muted")[0];
 
@@ -917,10 +917,10 @@ function processTestFailures(doc,
                                         if (scope == "*") {
                                             matchLevel = 1;
                                             entryMatches = true;
-                                        } else if (scope.indexOf("/") == -1) { 
+                                        } else if (scope.indexOf("/") == -1) {
                                             matchLevel = 2;
                                             entryMatches = scope == currentPageOrg;
-                                        } else { 
+                                        } else {
                                             matchLevel = 3;
                                             var org = scope.split("/")[0];
                                             var repo = scope.split("/")[1];
@@ -1035,7 +1035,7 @@ function addJenkinsRefreshButton() {
         list.previousSibling.previousSibling.appendChild(a);
     }
 
-    $('.jenkinsreload').click(function (e) { 
+    $('.jenkinsreload').click(function (e) {
         e.preventDefault();
         reloadJenkins();
     });
@@ -1316,7 +1316,7 @@ function addReviewsToReviewContainer(reviewsContainer, title, reviews, backgroun
                 // todo: navigation doesn't work if location.hash == newLocation
                 location.hash = newLocation;
             };
-        })(clickLocation); 
+        })(clickLocation);
 
         reviewListDiv.appendChild(imgTag);
 
@@ -1364,8 +1364,8 @@ function sendmultimail(issuesList, isPull) {
     }
 
     if (count == 1) {
-      sendmail(singleIssueNumber, singleIssueTitle, isPull);
-      return;
+        sendmail(singleIssueNumber, singleIssueTitle, isPull);
+        return;
     }
 
     var subject = owner + "/" + repo + ": " + count + " Selected " + (isPull ? "PRs" : "Issues");
