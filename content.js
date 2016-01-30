@@ -1273,28 +1273,33 @@ function addCodeReviewSummaryAndButtons(codeReviewOptions) {
     // Buttons
     var btnList = document.getElementById("partial-new-comment-form-actions");
 
+    var codeReviewDiv = document.createElement("div");
+    codeReviewDiv.className = stashPopClassName;
+
     var text = document.createElement("font");
     text.color = "#666666";
     text.textContent = "Code Review: ";
-    btnList.appendChild(text);
+    codeReviewDiv.appendChild(text);
 
     var positiveIndicators = positiveIndicatorsString.split(",");
     var negativeIndicators = negativeIndicatorsString.split(",");
     var testedIndicators = testedIndicatorsString.split(",");
 
     if (positiveIndicatorsString.length > 0) {
-        btnList.appendChild(createCommentSettingLink("Approve", positiveIndicators[0], "#00aa00"));
+        codeReviewDiv.appendChild(createCommentSettingLink("Approve", positiveIndicators[0], "#00aa00"));
     }
     
     if (negativeIndicatorsString.length > 0) {
-        btnList.appendChild(createCommentSettingLink("Reject", negativeIndicators[0], "#aa0000"));
+        codeReviewDiv.appendChild(createCommentSettingLink("Reject", negativeIndicators[0], "#aa0000"));
     }
 
     if (testedIndicatorsString.length > 0) {
-        btnList.appendChild(createCommentSettingLink("Tested", testedIndicators[0]));
+        codeReviewDiv.appendChild(createCommentSettingLink("Tested", testedIndicators[0]));
     }
 
-    // Reviews
+    btnList.appendChild(codeReviewDiv);
+    
+    // Review summary
     var positiveReviews = new Array();
     var negativeReviews = new Array();
     var testReviews = new Array();
@@ -1343,7 +1348,7 @@ function addCodeReviewSummaryAndButtons(codeReviewOptions) {
 
     if (positiveReviews.length > 0 || negativeReviews.length > 0 || testReviews.length > 0) {
         var reviewsContainer = document.createElement("div");
-        reviewsContainer.setAttribute("class", stashPopClassName);
+        reviewsContainer.className = stashPopClassName;
 
         if (positiveReviews.length > 0) {
             addReviewsToReviewContainerAndColorizeReviews(reviewsContainer, "Approvals", positiveReviews, "#77ff77", "#edffed", "#00cc00");
@@ -1362,6 +1367,8 @@ function addCodeReviewSummaryAndButtons(codeReviewOptions) {
     }
     else {
         var noCodeReviewsDiv = document.createElement("div");
+        noCodeReviewsDiv.className = stashPopClassName;
+
         var bold = document.createElement("b");
         bold.textContent = "Code Reviews";
         noCodeReviewsDiv.appendChild(bold);
