@@ -1525,7 +1525,7 @@ function sendmultimail(issuesList, isPull) {
 
             // TODO: Fetch the target branch of each PR.
 
-            body = body + issueTitle + " " + baseUrl + issueNumber + "\r\n";
+            body = body + baseUrl + issueNumber + " " + issueTitle + "\r\n";
             shortBody = shortBody + "#" + issueNumber + ": " + issueTitle + "\r\n";
         }
     }
