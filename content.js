@@ -565,7 +565,7 @@ function addJenkinsTestRunTimes() {
                 }
 
                 var timestamp = header.innerText.split("(")[1].split(")")[0];
-                var timestampMoment = moment(timestamp);
+                var timestampMoment = moment(new Date(timestamp));
                 var dayCount = moment().diff(timestampMoment, 'days', true);
 
                 var backgroundColor = "#000000";
