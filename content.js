@@ -1570,7 +1570,7 @@ function sendmail(issueNumber, issueTitle, isPull) {
     var kind = isPull ? "PR" : "Issue";
     baseUrl = baseUrl + (isPull ? "/pull/" : "/issues/");
 
-    var owner = document.getElementsByClassName("entry-title")[0].getElementsByClassName("author")[0].getElementsByTagName("span")[0].innerHTML;
+    var owner = document.getElementsByClassName("entry-title")[0].getElementsByClassName("author")[0].getElementsByTagName("a")[0].innerHTML;
     var repo = document.getElementsByClassName("entry-title")[0].getElementsByTagName("strong")[0].getElementsByTagName("a")[0].innerHTML;
     var targetBranchDisplay = "";
 
