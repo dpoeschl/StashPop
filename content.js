@@ -21,6 +21,30 @@ var option_testRerunText = "testRerunText";
 var option_showCodeReviewInfo = "showCodeReviewInfo";
 var option_codeReviewOptions = "codeReviewOptions";
 
+if (!window.chrome && browser) {
+    // Edge doesn't support the `chrome` class but it does expose `browser`
+    window.chrome = browser;
+}
+
+// Edge doesn't yet support settings so the defaults have to be manually created
+var defaultSettings = {};
+defaultSettings[option_emailIssuesList] = true;
+defaultSettings[option_emailIssue] = true;
+defaultSettings[option_emailPullRequestList] = true;
+defaultSettings[option_emailPullRequest] = true;
+defaultSettings[option_jenkinsOpenDetailsLinksInNewTab] = true;
+defaultSettings[option_jenkinsShowRunTime] = true;
+defaultSettings[option_jenkinsShowFailureIndications] = true;
+defaultSettings[option_jenkinsShowTestFailures] = true;
+defaultSettings[option_jenkinsShowBugFilingButton] = true;
+defaultSettings[option_jenkinsShowRetestButton] = true;
+defaultSettings[option_showCodeReviewInfo] = true;
+defaultSettings[option_codeReviewOptions] = "*;:+1:,:thumbsup:,:shipit:,LGTM;:-1:,:thumbsdown:;Test Signoff";
+defaultSettings[option_issueCreationRouting] = "dotnet/roslyn-internal:dotnet/roslyn";
+defaultSettings[option_nonDefaultTestInfo] = "dotnet/roslyn:vsi:prtest/win/vsi/p0\ndotnet/roslyn-internal:vsi:prtest/win/vsi/p0";
+defaultSettings[option_defaultIssueLabels] = "dotnet:Bug\ndotnet/roslyn-internal:Contributor Pain,Area-Infrastructure";
+defaultSettings[option_testRerunText] = "*:retest {0} please\ndotnet:@dotnet-bot retest {0} please";
+
 document.addEventListener("DOMContentLoaded", function () {
     "use strict";
     log("DOMContentLoaded");
@@ -107,6 +131,8 @@ function reload(firstRun) {
                 option_codeReviewOptions
             ] },
         function (currentSettings) {
+            // Edge currently doesn't pass the settings to this method so we're using the default values
+            currentSettings = currentSettings || defaultSettings;
             if (isIndividualItemPage) {
                 var title = document.getElementsByClassName("js-issue-title")[0].innerHTML;
                 var number = document.getElementsByClassName("gh-header-number")[0].innerHTML.substring(1);
