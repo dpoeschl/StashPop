@@ -18,6 +18,20 @@ StashPop currently only works on [Firefox Nightly builds](https://nightly.mozill
 3. In Nightly, navigate to `about:config` and update `xpinstall.signatures.required` to `false`
 4. Navigate to `about:addons`, choose `Install Add-on From File` from the gear menu, and select the .xpi file you made in step 2
 
+**Edge** (Beta Support - please file any issues you find)
+
+StashPop currently only works on build 14291 of Windows in the [Windows 10 Insider Preview](https://insider.windows.com/) program.  If you're using an appropriate version of Windows 10 and Edge then follow these steps to get set up:
+
+1. Enlist in StashPop or download the source code
+2. In Edge, click the ellipses (...) in the top right corner
+3. Click `Extensions`
+4. Click `Load extension`
+5. Select the directory containing the code that you selected in step 1
+
+Known limitations in Edge:
+- The `options` API isn't implemented so they're not tunable except by updating `content.js` and reloading the extension
+- The `permissions` API isn't implemented so Jenkins test failure data can't be fetched and displayed inline
+
 **Features**
 -------------
 
