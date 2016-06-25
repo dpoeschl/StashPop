@@ -1,5 +1,6 @@
 {
   "name": "StashPop",
+  "author": "David Poeschl",
   "description": "Adds Email and Test Failure Management Features to GitHub",
   "version": "1.1.0",
   "manifest_version": 2,
@@ -34,7 +35,9 @@
     "128": "images/stashpop2_128.png"
   },
   "browser_action": {
-    "default_icon": "images/stashpop_48.png"
+    "default_icon": {
+      "48": "images/stashpop_48.png"
+    }
   },
   "permissions": [
     "storage",
