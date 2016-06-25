@@ -1,35 +1,50 @@
 {
-"name":"StashPop for GitHub",
-"description":"None",
-"version":"1",
-"manifest_version":2,
-"options_ui": {
+  "name": "StashPop",
+  "description": "Adds Email and Test Failure Management Features to GitHub",
+  "version": "1.1.0",
+  "manifest_version": 2,
+  "options_ui": {
     "page": "options.html",
     "chrome_style": true
   },
-"web_accessible_resources": [
-  "scripts/injectedcode.js",
-  "images/loading.gif"
+  "applications": {
+    "gecko": {
+      "id": "stashpop@dpoeschl.com"
+    }
+  },
+  "web_accessible_resources": [
+    "scripts/injectedcode.js",
+    "images/loading.gif"
   ],
-"content_scripts": [
+  "content_scripts": [
     {
-      "matches": ["https://github.com/*"],
-      "js": ["jquery-2.1.4.min.js", "content.js"],
+      "matches": [ "https://github.com/*" ],
+      "css": [ "style.css", "jquery-ui.theme.min.css" ],
+      "js": [ "jquery-2.1.4.min.js", "jquery.color-2.1.2.js", "moment.min.js", "content.js", "jquery-ui.min.js" ],
       "run_at": "document_start"
     }
   ],
-"background": {
-  "scripts": ["background.js"],
-  "persistent": false
+  "background": {
+    "scripts": [ "background.js" ],
+    "persistent": false
   },
-"browser_action": {
-    "default_icon": "icon.png"
+  "icons": {
+    "16": "images/stashpop_16.png",
+    "48": "images/stashpop2_48.png",
+    "128": "images/stashpop2_128.png"
   },
-"permissions": [
-  "tabs",
-  "storage",
-  "https://ajax.googleapis.com/",
-  "https://github.com/*",
-  "http://dotnet-ci.cloudapp.net/*"
+  "browser_action": {
+    "default_icon": "images/stashpop_48.png"
+  },
+  "permissions": [
+    "storage",
+    "https://github.com/*",
+    "http://dotnet-ci.cloudapp.net/*",
+    "http://ci.roslyn.io/",
+    "https://ci.roslyn.io/"
+  ],
+  "optional_permissions": [
+    "http://*/*",
+    "https://*/*"
   ]
 }

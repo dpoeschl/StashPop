@@ -1,66 +1,162 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <title>StashPop for GitHub Options</title>
-  <style>
-    body: { padding: 10px; }
-  </style>
+    <title>StashPop Options</title>
+    <style>
+        body: {
+            padding: 10px;
+        }
+    </style>
 </head>
 
 <body>
-  <b>Email Options</b><br />
-  <label>
-    &nbsp;&nbsp;&nbsp;&nbsp;<input type="checkbox" id="emailIssuesList">
-    Issues list
-  </label>
-  <br />
-  <label>
-    &nbsp;&nbsp;&nbsp;&nbsp;<input type="checkbox" id="emailIssue">
-    Individual issue
-  </label>
-  <br />
-  <label>
-    &nbsp;&nbsp;&nbsp;&nbsp;<input type="checkbox" id="emailPullRequestList">
-    Pull request list
-  </label>
-  <br />
-  <label>
-    &nbsp;&nbsp;&nbsp;&nbsp;<input type="checkbox" id="emailPullRequest">
-    Individual pull request
-  </label>
-  
-  <br /><br />
+    <div style="width:600px;">
+        <b>Email Options</b><br />
+        <label>
+            &nbsp;&nbsp;&nbsp;&nbsp;<input type="checkbox" id="emailIssuesList">
+            Issues list
+        </label>
+        <br />
+        <label>
+            &nbsp;&nbsp;&nbsp;&nbsp;<input type="checkbox" id="emailIssue">
+            Individual issue
+        </label>
+        <br />
+        <label>
+            &nbsp;&nbsp;&nbsp;&nbsp;<input type="checkbox" id="emailPullRequestList">
+            Pull request list
+        </label>
+        <br />
+        <label>
+            &nbsp;&nbsp;&nbsp;&nbsp;<input type="checkbox" id="emailPullRequest">
+            Individual pull request
+        </label>
 
-  <b>Jenkins Options</b><br />
-  <label>
-    &nbsp;&nbsp;&nbsp;&nbsp;<input type="checkbox" id="jenkinsOpenDetailsLinksInNewTab">
-    Open "details" links in a new tab
-  </label>
-  <br />
-  <label>
-    &nbsp;&nbsp;&nbsp;&nbsp;<input type="checkbox" id="jenkinsShowRunTime">
-    Show run time
-  </label>
-  <br />
-  <label>
-    &nbsp;&nbsp;&nbsp;&nbsp;<input type="checkbox" id="jenkinsShowFailureIndications">
-    Show failure indications
-  </label>
-  <br />
-  <label>
-    &nbsp;&nbsp;&nbsp;&nbsp;<input type="checkbox" id="jenkinsShowTestFailures">
-    Show test failures
-  </label>
-  <br />
-  <label>
-    &nbsp;&nbsp;&nbsp;&nbsp;<input type="checkbox" id="jenkinsShowBugFilingButton">
-    Show bug-filing button on failure
-  </label>
-  <br /><br />
+        <br /><br />
 
-  <div id="status"></div>
-  <button id="save">Save</button>
+        <b>Pull Request Options</b><br />
+        <label>
+            &nbsp;&nbsp;&nbsp;&nbsp;<input type="checkbox" id="jenkinsOpenDetailsLinksInNewTab">
+            Open "details" links in a new tab
+        </label>
+        <br />
+        <label>
+            &nbsp;&nbsp;&nbsp;&nbsp;<input type="checkbox" id="jenkinsShowRunTime">
+            Show test run time
+        </label>
+        <br />
+        <label>
+            &nbsp;&nbsp;&nbsp;&nbsp;<input type="checkbox" id="jenkinsShowFailureIndications">
+            Show failure indications on PR page
+        </label>
+        <br />
+        <label>
+            &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<input type="checkbox" id="jenkinsShowTestFailures">
+            And show structured test failures
+        </label>
+        <br />
+        <label>
+            &nbsp;&nbsp;&nbsp;&nbsp;<input type="checkbox" id="jenkinsShowBugFilingButton">
+            Show bug-filing button on failures
+        </label>
+        <br />
+        <label>
+            &nbsp;&nbsp;&nbsp;&nbsp;<input type="checkbox" id="jenkinsShowRetestButton">
+            Show retest button on failures
+        </label>
+        <br />
+        <label>
+            &nbsp;&nbsp;&nbsp;&nbsp;<input type="checkbox" id="jenkinsOfferInlineFailuresOnPRList">
+            Offer to inline test failures on PR lists
+        </label>
+        <br />
+        <label>
+            &nbsp;&nbsp;&nbsp;&nbsp;<input type="checkbox" id="showCodeReviewInfo">
+            Show code review information
+        </label>
+        <br /><br />
+        <label>
+            &nbsp;&nbsp;&nbsp;&nbsp;Code Review Options<br />
+            &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Examples:<br />
+            &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+            <i>Organization;Approved;Rejected;TestSignoff</i><br />
+            &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+            <i>Organization/Repo;Approval1,Approval2;Rejected1,Rejected2;TestSignoff1,TestSignoff2</i><br />
+            &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+            <i>Organization/Repo2;:+1:,:thumbsup:;:-1:;Test Signoff</i><br />
+            &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+            <i>Organization/RepoToIgnore;;;</i><br />
+            &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Configured options:<br />
+            &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<textarea id="codeReviewOptions" rows="5" cols="75"></textarea>
+        </label>
+        <br /><br />
+        <label>
+            &nbsp;&nbsp;&nbsp;&nbsp;Issue creation routing:<br />
+            &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Examples:<br />
+            &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+            <i>OrganizationA/RepoWithoutIssues:OrganizationB/RepoWithIssues</i><br />
+            &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Configured routes:<br />
+            &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<textarea id="issueCreationRouting" rows="5" cols="75"></textarea>
+        </label>
+        <br /><br />
+        <label>
+            &nbsp;&nbsp;&nbsp;&nbsp;Non-default test suites:<br />
+            &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Examples:<br />
+            &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+            <i>OrganizationA:NonDefaultTestA</i><br />
+            &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+            <i>OrganizationB/SpecificRepo:NonDefaultTestB</i><br />
+            &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+            <i>OrganizationB/SpecificRepo:NonDefaultTestC</i><br />
+            &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+            <i>OrganizationC/SpecificRepo:NonDefaultTestD:TestNameThatIndicatesTestDAlreadyRan</i><br />
+            &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Test suites:<br />
+            &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<textarea id="nonDefaultTestInfo" rows="5" cols="75"></textarea>
+        </label>
+        <br /><br />
+        <label>
+            &nbsp;&nbsp;&nbsp;&nbsp;Default labels when creating issues<br />
+            &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Examples:<br />
+            &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+            <i>OrganizationA:DefaultLabel1</i><br />
+            &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+            <i>OrganizationB/SpecificRepo:DefaultLabel1,DefaultLabel2</i><br />
+            &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Default labels:<br />
+            &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<textarea id="defaultIssueLabels" rows="5" cols="75"></textarea>
+        </label>
+        <br /><br />
+        <label>
+            &nbsp;&nbsp;&nbsp;&nbsp;Jenkins test rerunning text<br />
+            &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Examples:<br />
+            &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+            <i>*:retest {0} please</i><br />
+            &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+            <i>OrganizationA:retest {0} please</i><br />
+            &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+            <i>OrganizationB/SpecificRepo:please rerun tests</i><br />
+            &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Rerun text:<br />
+            &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<textarea id="testRerunText" rows="5" cols="75"></textarea>
+        </label>
+        <br /><br />
+        <label>
+            &nbsp;&nbsp;&nbsp;&nbsp;Host permissions:<br />
+            &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Examples:<br />
+            &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+            <i>https://jenkins-server/*</i><br />
+            &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Add new host:<br/>
+            &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+            <input id="addHostPermissionHostname"></input>
+            <button id="addHostPermission">Add</button><br>
+            &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span id="addHostPermissionError" style="color: red"></span><br />
+            &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<textarea id="existingHostPermissions" rows="5" cols="75" disabled="true"></textarea>
+        </label>
+        <br /><br />
+        <br /><br />
 
-  <script src="options.js"></script>
+        <div id="status"></div>
+        <button id="save">Save</button>
+    </div>
+
+    <script src="options.js"></script>
 </body>
 </html>
