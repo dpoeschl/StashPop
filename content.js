@@ -227,6 +227,7 @@ var currentPageFullUrl;
 var postDomainUrlParts;
 var currentPageOrg;
 var currentPageRepo;
+var currentPageRepositoryBaseUrl;
 
 var isIndividualItemPage;
 var individualItemPageTitleElement;
@@ -280,8 +281,10 @@ function resetGlobals() {
         if (typeof repo !== "undefined") {
             // Repository sub-page: github.com/dotnet/roslyn...
             currentPageRepo = repo;
+            currentPageRepositoryBaseUrl = "https://github.com/" + org + "/" + repo;
         }
         log("    currentPageRepo: " + currentPageRepo);
+        log("    currentPageRepositoryBaseUrl: " + currentPageRepositoryBaseUrl);
 
         individualItemPageTitleElement = document.getElementsByClassName("js-issue-title")[0];
         isIndividualItemPage = typeof individualItemPageTitleElement !== 'undefined';
@@ -1566,12 +1569,9 @@ function sendmail(issueNumber, issueTitle, isPull) {
     issueTitle = issueTitle.trim();
     issueNumber = issueNumber.trim();
 
-    var baseUrl = document.getElementsByClassName("entry-title")[0].getElementsByTagName('strong')[0].getElementsByTagName('a')[0].href;
     var kind = isPull ? "PR" : "Issue";
-    baseUrl = baseUrl + (isPull ? "/pull/" : "/issues/");
+    var baseUrl = currentPageRepositoryBaseUrl + (isPull ? "/pull/" : "/issues/");
 
-    var owner = document.getElementsByClassName("entry-title")[0].getElementsByClassName("author")[0].getElementsByTagName("a")[0].innerHTML;
-    var repo = document.getElementsByClassName("entry-title")[0].getElementsByTagName("strong")[0].getElementsByTagName("a")[0].innerHTML;
     var targetBranchDisplay = "";
 
     if (isPull) {
@@ -1603,7 +1603,7 @@ function sendmail(issueNumber, issueTitle, isPull) {
         }
     }
 
-    var subject = owner + "/" + repo + targetBranchDisplay + " " + kind + " #" + issueNumber + ": " + issueTitle;
+    var subject = currentPageOrg + "/" + currentPageRepo + targetBranchDisplay + " " + kind + " #" + issueNumber + ": " + issueTitle;
 
     var body = baseUrl + issueNumber + "\r\n\r\n"; // TODO: Assigned to, etc.
     var isPublic = (typeof document.getElementsByClassName("entry-title private")[0] === "undefined");
