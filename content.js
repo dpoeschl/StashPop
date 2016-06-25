@@ -316,7 +316,7 @@ function resetGlobals() {
         isIndividualItemPage = typeof individualItemPageTitleElement !== 'undefined';
         log("    isIndividualItemPage: " + isIndividualItemPage);
 
-        itemListElement = document.getElementsByClassName("table-list-issues")[0];
+        itemListElement = document.getElementsByClassName("issues-listing")[0];
         isListPage = typeof itemListElement !== 'undefined';
         log("    isListPage: " + isListPage);
     }
