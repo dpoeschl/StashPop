@@ -318,6 +318,8 @@ function resetGlobals() {
 
         itemListElement = document.getElementsByClassName("issues-listing")[0];
         isListPage = typeof itemListElement !== 'undefined';
+        itemListElement = itemListElement.getElementsByClassName("Box-body")[0]
+
         log("    isListPage: " + isListPage);
     }
 }
@@ -1541,10 +1543,9 @@ function sendmultimail(issuesList, isPull) {
         if (issuesList.children[i].classList.contains("selected")) {
             count++;
             var issue = issuesList.children[i];
-            var title = issue.getElementsByClassName("issue-title")[0];
-            var urlParts = title.getElementsByClassName("issue-title-link")[0].href.split("/");
+            var issueTitle = issue.getElementsByClassName("width-full p-3")[0].children[0].children[0].innerText;
+            var urlParts = issue.getElementsByClassName("width-full p-3")[0].children[0].children[0].href.split("/");
             var issueNumber = urlParts[urlParts.length - 1].trim();
-            var issueTitle = title.getElementsByClassName("issue-title-link")[0].innerHTML.trim();
 
             singleIssueNumber = issueNumber;
             singleIssueTitle = issueTitle;
