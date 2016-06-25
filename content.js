@@ -517,6 +517,7 @@ function createButtonWithCallBack(title, callback) {
     button.setAttribute("type", "button");
     button.setAttribute("value", title);
     button.onclick = callback;
+    button.className = "btn btn-sm";
     return button;
 }
 
