@@ -1529,11 +1529,8 @@ function addReviewsToReviewContainerAndColorizeReviews(reviewsContainer, title, 
 }
 
 function sendmultimail(issuesList, isPull) {
-    var baseUrl = document.getElementsByClassName("entry-title")[0].getElementsByTagName('strong')[0].getElementsByTagName('a')[0].href;
+    var baseUrl = currentPageRepositoryBaseUrl;
     baseUrl = baseUrl + (isPull ? "/pull/" : "/issues/");
-
-    var owner = document.getElementsByClassName("entry-title")[0].getElementsByClassName("author")[0].getElementsByTagName("span")[0].innerHTML;
-    var repo = document.getElementsByClassName("entry-title")[0].getElementsByTagName("strong")[0].getElementsByTagName("a")[0].innerHTML;
 
     var body = "";
     var shortBody = "";
@@ -1564,7 +1561,7 @@ function sendmultimail(issuesList, isPull) {
         return;
     }
 
-    var subject = owner + "/" + repo + ": " + count + " Selected " + (isPull ? "PRs" : "Issues");
+    var subject = currentPageOrg + "/" + currentPageRepo + ": " + count + " Selected " + (isPull ? "PRs" : "Issues");
     body = body + "\r\n\r\n"; // TODO: Assigned to, etc.
     shortBody = shortBody + "\r\n\r\n"; // TODO: Assigned to, etc.
 
