@@ -250,7 +250,7 @@ function resetGlobals() {
     log("Setting new globals");
 
     currentPageFullUrl = window.location.href;
-    log("currentPageFullUrl: " + currentPageFullUrl);
+    log("    currentPageFullUrl: " + currentPageFullUrl);
 
     var urlParts = normalizeAndRemoveUrlParameters(currentPageFullUrl).split("/");
     var indexOfGitHubDotCom = -1;
@@ -263,10 +263,9 @@ function resetGlobals() {
 
     if (indexOfGitHubDotCom > -1) {
         postDomainUrlParts = urlParts.slice(indexOfGitHubDotCom + 1, urlParts.length);
-        log("postDomainUrlParts: " + postDomainUrlParts.toString());
+        log("    postDomainUrlParts: " + postDomainUrlParts.toString());
         var org = urlParts[indexOfGitHubDotCom + 1];
         var repo = urlParts[indexOfGitHubDotCom + 2];
-        log("ASDF" + repo);
         if (typeof org !== "undefined") {
             if (org == "pulls") {
                 // Personal pulls page: github.com/pulls...
@@ -276,21 +275,21 @@ function resetGlobals() {
                 currentPageOrg = org;
             }
         }
-        log("currentPageOrg: " + currentPageOrg);
+        log("    currentPageOrg: " + currentPageOrg);
 
         if (typeof repo !== "undefined") {
             // Repository sub-page: github.com/dotnet/roslyn...
             currentPageRepo = repo;
         }
-        log("currentPageRepo: " + currentPageRepo);
+        log("    currentPageRepo: " + currentPageRepo);
 
         individualItemPageTitleElement = document.getElementsByClassName("js-issue-title")[0];
         isIndividualItemPage = typeof individualItemPageTitleElement !== 'undefined';
-        log("isIndividualItemPage: " + isIndividualItemPage);
+        log("    isIndividualItemPage: " + isIndividualItemPage);
 
         itemListElement = document.getElementsByClassName("table-list-issues")[0];
         isListPage = typeof itemListElement !== 'undefined';
-        log("isListPage: " + isListPage);
+        log("    isListPage: " + isListPage);
     }
 }
 
