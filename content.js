@@ -379,11 +379,11 @@ function addButtonsToListPage(isPull, currentSettings) {
 
         for (var i = 0; i < itemListElement.children.length; i++) {
             var itemElement = itemListElement.children[i];
-            var titleElement = itemElement.getElementsByClassName("issue-title")[0];
+            var titleElement = itemElement.getElementsByClassName("d-table-cell width-full")[0];
 
-            var urlParts = titleElement.getElementsByClassName("issue-title-link")[0].href.split("/");
+            var urlParts = titleElement.getElementsByClassName("Box-row-link")[0].href.split("/");
             var issueNumber = urlParts[urlParts.length - 1];
-            var issueTitle = titleElement.getElementsByClassName("issue-title-link")[0].innerHTML;
+            var issueTitle = titleElement.getElementsByClassName("Box-row-link")[0].innerHTML;
 
             (function () {
                 var _issueNumber = issueNumber;
@@ -1543,8 +1543,8 @@ function sendmultimail(issuesList, isPull) {
         if (issuesList.children[i].classList.contains("selected")) {
             count++;
             var issue = issuesList.children[i];
-            var issueTitle = issue.getElementsByClassName("width-full p-3")[0].children[0].children[0].innerText;
-            var urlParts = issue.getElementsByClassName("width-full p-3")[0].children[0].children[0].href.split("/");
+            var issueTitle = issue.getElementsByClassName("width-full p-3")[0].children[1].innerText;
+            var urlParts = issue.getElementsByClassName("width-full p-3")[0].children[1].href.split("/");
             var issueNumber = urlParts[urlParts.length - 1].trim();
 
             singleIssueNumber = issueNumber;
