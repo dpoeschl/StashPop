@@ -317,7 +317,7 @@ function resetGlobals() {
         log("    isIndividualItemPage: " + isIndividualItemPage);
 
         itemListElement = document.getElementsByClassName("issues-listing")[0];
-        isListPage = typeof itemListElement !== 'undefined';
+        isListPage = !isIndividualItemPage;
         itemListElement = itemListElement.getElementsByClassName("Box-body")[0]
 
         log("    isListPage: " + isListPage);
