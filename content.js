@@ -563,10 +563,10 @@ function copyTextToClipboard(text) {
 
 // TODO: Only scrape once between this and addTestFailureButtonsAndDescriptions
 function addJenkinsTestRunTimes() {
-    var testRuns = document.getElementsByClassName("build-status-item");
+    var testRuns = document.getElementsByClassName("merge-status-item");
     for (var i = 0; i < testRuns.length; i++) {
         var run = testRuns[i];
-        var detailsLink = run.getElementsByClassName("build-status-details")[0];
+        var detailsLink = run.getElementsByClassName("merge-status-details")[0];
         if (typeof detailsLink === 'undefined') {
             continue;
         }
@@ -647,7 +647,7 @@ function processTestFailures(doc,
                              callbackWhenTestProcessed,
                              currentSettings) {
 
-    var testFailures = doc.getElementsByClassName("octicon-x build-status-icon");
+    var testFailures = doc.getElementsByClassName("octicon-x merge-status-icon");
 
     if (typeof prLoadingDiv !== "undefined" && prLoadingDiv !== null) {
         // Delete the existing loading icon
@@ -729,7 +729,7 @@ function processTestFailures(doc,
         log("relevantNonDefaultTests length: " + nonDefaultTestCount);
         log("Removing already-run tests...")
 
-        var buildStatusList = $(".build-statuses-list:visible")[0];
+        var buildStatusList = $(".merge-status-list:visible")[0];
 
         if (typeof buildStatusList !== "undefined") {
             for (var i = 0; i < buildStatusList.children.length; i++) {
@@ -801,7 +801,7 @@ function processTestFailures(doc,
         }
 
         var testFailure = testFailures[i];
-        var testFailUrl = testFailure.parentNode.getElementsByClassName("build-status-details")[0].href;
+        var testFailUrl = testFailure.parentNode.getElementsByClassName("merge-status-details")[0].href;
         var queueName = testFailure.parentNode.getElementsByClassName("text-emphasized")[0].innerText.trim();
 
         var loading = doc.createElement("img");
@@ -1119,14 +1119,14 @@ function processTestFailures(doc,
 }
 
 function makeBuildStatusWindowsBig() {
-    var lists = document.getElementsByClassName("build-statuses-list");
+    var lists = document.getElementsByClassName("merge-status-list");
     for (var i = 0; i < lists.length; i++) {
         lists[i].style.maxHeight = "5000px";
     }
 }
 
 function addJenkinsRefreshButton(currentSettings) {
-    var lists = $(".build-statuses-list");
+    var lists = $(".merge-status-list");
     for (var i = 0; i < lists.length; i++) {
         var list = lists[i];
         var a = document.createElement("a");
@@ -1268,7 +1268,7 @@ function executeCallbackIfPermissionMissing(url, callback) {
 }
 
 function openJenkinsDetailsInNewTab(currentSettings) {
-    var detailsLinks = document.getElementsByClassName("build-status-details");
+    var detailsLinks = document.getElementsByClassName("merge-status-details");
     for (var i = 0; i < detailsLinks.length; i++) {
         var detailsLink = detailsLinks[i];
         detailsLink.target = "_blank";
@@ -1283,7 +1283,7 @@ function openJenkinsDetailsInNewTab(currentSettings) {
                         reloadJenkins(false, currentSettings);
                         return false;
                     });
-                grantAccessLink.className = "build-status-details right";
+                grantAccessLink.className = "merge-status-details right";
                 _detailsLink.parentNode.insertBefore(grantAccessLink, _detailsLink.nextSibling);
             })
         })(detailsLink);
@@ -1482,7 +1482,7 @@ function addReviewsToReviewContainerAndColorizeReviews(reviewsContainer, title, 
         var headerForBackground = review.getElementsByClassName("timeline-comment-header")[0];
         headerForBackground.style.backgroundColor = (labelPart == "" ? externalBackgroundColor : contributorBackgroundColor);
 
-        var time = review.getElementsByTagName("time")[0].innerText;
+        var time = review.getElementsByTagName("relative-time")[0].innerText;
 
         var imgTag = review.children[0].children[0].cloneNode();
         imgTag.className = "avatar";
